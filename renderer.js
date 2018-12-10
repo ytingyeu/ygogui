@@ -42,14 +42,14 @@ form.addEventListener('submit', (event) => {
     event.preventDefault();
     ipcRenderer.send('submit-form', {
         src: inputs.src.value,
-        des: inputs.des.value  
+        des: inputs.des.value
     });
 });
 
 
-/*
+
 (function handleDropFile() {
-    var holder = document.getElementById('display-input-path');
+    var holder = document.getElementById('avs-src');
 
     holder.ondragover = () => {
         return false;
@@ -71,9 +71,9 @@ form.addEventListener('submit', (event) => {
             let fileExtension = f.path.split('.').pop();
 
             if (fileExtension === 'avs') {
-                let refInputPath = document.getElementById("display-input-path");
+                let refInputPath = document.getElementById('avs-src');
                 refInputPath.innerHTML = f.path;
-                globalAvsPath = f.path;
+                inputs.src.value = f.path;
             }
         }
 
@@ -81,7 +81,6 @@ form.addEventListener('submit', (event) => {
     };
 })();
 
-}
 
 
-*/
+
