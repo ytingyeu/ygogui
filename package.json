@@ -1,0 +1,14 @@
+{
+  "name": "ncuacg-enc",
+  "version": "0.1.0",
+  "description": "A developing VP9/Opus encoder for NCUACG",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },  
+  "author": "Tingyeu Yang",
+  "license": "GPLv3",
+  "devDependencies": {
+    "electron": "^3.0.7"
+  }
+}

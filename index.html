@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <title>NCUACG Encoder</title>
+</head>
+
+<body>
+  <h1>你在哪一個時代啊?</h1>
+  <!-- All of the Node.js APIs are available in this renderer process. -->
+  <p>
+    We are using Node.js
+    <script>document.write(process.versions.node)</script>,
+    Chromium
+    <script>document.write(process.versions.chrome)</script>,
+    and Electron
+    <script>document.write(process.versions.electron)</script>.
+  </p>
+
+  <section id="sec-select-file">
+    <div id="display-input-path"></div>
+    <button type="button" id="btn-select-file">Browse...</button>
+    <button type="button" id="btn-add-to-job">Add to job</button>
+  </section>
+
+
+  <script>
+    // You can also require other files to run in this process
+    require('./renderer.js')
+  </script>
+</body>
+
+</html>
