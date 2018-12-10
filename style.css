@@ -1,9 +1,6 @@
+body{
+    margin: 20px auto;
+    padding: 20px;
+}
 
 
-
-
-    #display-input-path{
-        border: 1px solid black;
-        width: 500px;
-        height: 1.3em;        
-    }
