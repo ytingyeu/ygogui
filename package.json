@@ -2,6 +2,7 @@
   "name": "ncuacg-enc",
   "version": "0.1.0",
   "description": "A developing VP9/Opus encoder for NCUACG",
+  "repository": "https://github.com/ytingyeu/ncuacg-enc",
   "main": "main.js",
   "scripts": {
     "start": "electron ."
