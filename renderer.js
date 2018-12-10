@@ -2,8 +2,52 @@
 // be executed in the renderer process for that window.
 // All of the Node.js APIs are available in this process.
 
-let globalAvsPath = "";
+const { ipcRenderer, remote, shell } = require('electron');
+const { dialog } = remote;
+const form = document.querySelector('form');
 
+const btns = {
+    src: document.getElementById('selectSrc'),
+    des: document.getElementById('selectDes'),
+    submit: form.querySelector('button[type="submit"]'),
+};
+
+const inputs = {
+    src: form.querySelector('input[name="src"]'),
+    des: form.querySelector('input[name="des"]')
+};
+
+btns.src.addEventListener('click', () => {
+    const avsPath = dialog.showOpenDialog({
+        properties: ['openFile'],
+        filters: [{ name: 'AviSynth scripts', extensions: ['avs'] }]
+    });
+    if (avsPath) {
+        //console.log(avsPath)
+        inputs.src.value = avsPath.toString();
+    }
+});
+
+btns.des.addEventListener('click', () => {
+    const outputPath = dialog.showSaveDialog({
+        filters: [{ name: 'WebM file', extensions: ['webm'] }]
+    });
+    if (outputPath) {
+        //console.log(outputPath)
+        inputs.des.value = outputPath;
+    }
+});
+
+form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    ipcRenderer.send('submit-form', {
+        src: inputs.src.value,
+        des: inputs.des.value  
+    });
+});
+
+
+/*
 (function handleDropFile() {
     var holder = document.getElementById('display-input-path');
 
@@ -37,33 +81,7 @@ let globalAvsPath = "";
     };
 })();
 
-function getPathByDialog() {
-    const app = require('electron').remote;
-    const dialog = app.dialog;
-
-    let retPaths = dialog.showOpenDialog({
-        properties: ['openFile'],
-        filters: [{ name: 'AviSynth Scripts', extensions: ['avs'] }]
-    });
-
-    if (retPaths != null) {
-        let refInputPath = document.getElementById("display-input-path");
-        refInputPath.innerHTML = retPaths[0];
-        globalAvsPath = retPaths[0];
-    }
-
-};
-
-function addToJob() {    
-
-    if (globalAvsPath != null) {
-        console.log(globalAvsPath);
-    }
-
 }
 
-refBtnSelectFile = document.getElementById("btn-select-file");
-refBtnAddToJob = document.getElementById("btn-add-to-job");
 
-refBtnSelectFile.onclick = getPathByDialog;
-refBtnAddToJob.onclick = addToJob;
+*/
