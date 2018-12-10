@@ -2,7 +2,9 @@
 // be executed in the renderer process for that window.
 // All of the Node.js APIs are available in this process.
 
-(function handleDropFile () {
+let globalAvsPath = "";
+
+(function handleDropFile() {
     var holder = document.getElementById('display-input-path');
 
     holder.ondragover = () => {
@@ -20,37 +22,48 @@
     holder.ondrop = (e) => {
         e.preventDefault();
 
-        if (e.dataTransfer.files.length == 1){
+        if (e.dataTransfer.files.length == 1) {
             let f = e.dataTransfer.files[0];
             let fileExtension = f.path.split('.').pop();
 
-            if (fileExtension === 'avs'){
-                let inputPath = document.getElementById("display-input-path");
-            inputPath.innerHTML = f.path;
-            }           
+            if (fileExtension === 'avs') {
+                let refInputPath = document.getElementById("display-input-path");
+                refInputPath.innerHTML = f.path;
+                globalAvsPath = f.path;
+            }
         }
-      
+
         return false;
     };
 })();
 
 function getPathByDialog() {
-    const app = require('electron').remote; 
+    const app = require('electron').remote;
     const dialog = app.dialog;
 
-    let retPaths = dialog.showOpenDialog({ 
+    let retPaths = dialog.showOpenDialog({
         properties: ['openFile'],
-        filters: [{name: 'AviSynth Scripts', extensions: ['avs']}]
+        filters: [{ name: 'AviSynth Scripts', extensions: ['avs'] }]
     });
 
-    if (retPaths != null){
-        let inputPath = document.getElementById("display-input-path");
-        inputPath.innerHTML = retPaths[0];
+    if (retPaths != null) {
+        let refInputPath = document.getElementById("display-input-path");
+        refInputPath.innerHTML = retPaths[0];
+        globalAvsPath = retPaths[0];
     }
 
 };
 
-refBtnSelectFile = document.getElementById("btn-select-file");
+function addToJob() {    
 
-refBtnAddToJob = document.getElementById("btn-select-file");
+    if (globalAvsPath != null) {
+        console.log(globalAvsPath);
+    }
+
+}
+
+refBtnSelectFile = document.getElementById("btn-select-file");
+refBtnAddToJob = document.getElementById("btn-add-to-job");
+
 refBtnSelectFile.onclick = getPathByDialog;
+refBtnAddToJob.onclick = addToJob;
