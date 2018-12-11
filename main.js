@@ -1,20 +1,25 @@
 // Modules to control application life and create native browser window
-const {app, BrowserWindow} = require('electron')
+const { app, BrowserWindow, ipcMain } = require('electron')
+const path = require('path');
+const child_spawn = require('child_process').spawn;
+
+// globel variables
+let vDuration
+const devMode = true
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
 
-
-function createWindow () {
+function createWindow() {
   // Create the browser window.
-  mainWindow = new BrowserWindow({width: 800, height: 600})
+  mainWindow = new BrowserWindow({ width: 800, height: 600 })
 
   // and load the index.html of the app.
   mainWindow.loadFile('index.html')
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools({mode:"bottom"})
+  mainWindow.webContents.openDevTools({ mode: "bottom" })
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {
@@ -28,14 +33,17 @@ function createWindow () {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createWindow)
+app.on('ready', () => {
+  createWindow();
+  handleSubmit();
+});
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
   // On macOS it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
   if (process.platform !== 'darwin') {
-    app.quit()
+    app.quit();
   }
 })
 
@@ -43,11 +51,63 @@ app.on('activate', function () {
   // On macOS it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
   if (mainWindow === null) {
-    createWindow()
+    createWindow();
+
   }
 })
 
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
+
+/* 
+* get the path of input/output from mainWindow 
+* and execute ffmepg to encode
+*/
+function handleSubmit() {
+  ipcMain.on('submit-form', (event, encInfo) => {
+
+    let ffmpegPath
+
+    if (devMode) {
+      /* path for development */
+      ffmpegPath = app.getAppPath() + '\\tools\\ffmpeg32.exe';
+    } else {
+      /* path for packeged app */
+      ffmpegPath = app.getAppPath() + '\\..\\..\\tools\\ffmpeg32.exe';
+    }
+
+    const ffmpegOptions = [
+      '-i', encInfo.src,
+      '-y', '-threads', '8', '-speed', '4', '-quality', 'good', '-tile-columns', '2',
+      '-c:v', 'libvpx-vp9', '-crf', '18', '-b:v', '0',
+      '-c:a', 'libopus', '-b:a', '192k',
+      encInfo.des
+    ];
+
+    const encProc = child_spawn(ffmpegPath, ffmpegOptions);
+
+    encProc.stderr.on('data', (data) => {
+      parseFFmpegMsg(`${data}`);
+    });
+
+    encProc.on('close', (code) => {
+      console.log(`child process exited with code ${code}`);
+    });
 
 
+  });
+}
+
+function parseFFmpegMsg(msg) {
+
+  // Duration: 00:00:12.00
+  if (msg.includes('Duration')) {
+    vDuration = msg.match(/\d*\:\d*\:\d*\.\d*/g)[0];
+  }
+
+  if (msg.includes('frame=')) {
+    // time=00:00:01.65
+    let vTime = msg.match(/\d*\:\d*\:\d*\.\d*/g)[0];
+
+    mainWindow.webContents.send('update-progress', vTime);
+
+  }
+}

@@ -2,8 +2,55 @@
 // be executed in the renderer process for that window.
 // All of the Node.js APIs are available in this process.
 
-(function handleDropFile () {
-    var holder = document.getElementById('display-input-path');
+const { ipcRenderer, remote, shell } = require('electron');
+const { dialog } = remote;
+const form = document.querySelector('form');
+
+const btns = {
+    src: document.getElementById('selectSrc'),
+    des: document.getElementById('selectDes'),
+    submit: form.querySelector('button[type="submit"]'),
+};
+
+const inputs = {
+    src: form.querySelector('input[name="src"]'),
+    des: form.querySelector('input[name="des"]')
+};
+
+/* get avs path */
+btns.src.addEventListener('click', () => {
+    const avsPath = dialog.showOpenDialog({
+        properties: ['openFile'],
+        filters: [{ name: 'AviSynth scripts', extensions: ['avs'] }]
+    });
+    if (avsPath) {
+        inputs.src.value = avsPath.toString();
+    }
+});
+
+/* get output path and filename */
+btns.des.addEventListener('click', () => {
+    const outputPath = dialog.showSaveDialog({
+        filters: [{ name: 'WebM file', extensions: ['webm'] }]
+    });
+    if (outputPath) {
+        inputs.des.value = outputPath;
+    }
+});
+
+/* form submission to main process */
+form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    ipcRenderer.send('submit-form', {
+        src: inputs.src.value,
+        des: inputs.des.value
+    });
+});
+
+
+
+(function handleDropFile() {
+    var holder = document.getElementById('avs-src');
 
     holder.ondragover = () => {
         return false;
@@ -20,37 +67,22 @@
     holder.ondrop = (e) => {
         e.preventDefault();
 
-        if (e.dataTransfer.files.length == 1){
+        if (e.dataTransfer.files.length == 1) {
             let f = e.dataTransfer.files[0];
             let fileExtension = f.path.split('.').pop();
 
-            if (fileExtension === 'avs'){
-                let inputPath = document.getElementById("display-input-path");
-            inputPath.innerHTML = f.path;
-            }           
+            if (fileExtension === 'avs') {
+                let refInputPath = document.getElementById('avs-src');
+                refInputPath.innerHTML = f.path;
+                inputs.src.value = f.path;
+            }
         }
-      
+
         return false;
     };
 })();
 
-function getPathByDialog() {
-    const app = require('electron').remote; 
-    const dialog = app.dialog;
 
-    let retPaths = dialog.showOpenDialog({ 
-        properties: ['openFile'],
-        filters: [{name: 'AviSynth Scripts', extensions: ['avs']}]
-    });
-
-    if (retPaths != null){
-        let inputPath = document.getElementById("display-input-path");
-        inputPath.innerHTML = retPaths[0];
-    }
-
-};
-
-refBtnSelectFile = document.getElementById("btn-select-file");
-
-refBtnAddToJob = document.getElementById("btn-select-file");
-refBtnSelectFile.onclick = getPathByDialog;
+ipcRenderer.on('update-progress', (event, arg) => {
+    console.log(arg);
+});

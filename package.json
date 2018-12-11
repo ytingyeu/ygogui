@@ -5,8 +5,17 @@
   "repository": "https://github.com/ytingyeu/ncuacg-enc",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
-  },  
+    "start": "electron .",
+    "dist": "electron-builder -w"
+  },
+  "build": {
+    "appId": "org.ncuacg.app",
+    "win": {
+      "target": [
+        "zip"
+      ]
+    }
+  },
   "author": "Tingyeu Yang",
   "license": "GPLv3",
   "devDependencies": {
