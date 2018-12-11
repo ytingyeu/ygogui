@@ -1,13 +1,15 @@
 // Modules to control application life and create native browser window
 const { app, BrowserWindow, ipcMain } = require('electron')
+const path = require('path');
 const child_spawn = require('child_process').spawn;
+
+// globel variables
+let vDuration
+const devMode = true
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
-
-// globel variables
-let vDuration
 
 function createWindow() {
   // Create the browser window.
@@ -54,15 +56,23 @@ app.on('activate', function () {
   }
 })
 
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
 
-
+/* 
+* get the path of input/output from mainWindow 
+* and execute ffmepg to encode
+*/
 function handleSubmit() {
   ipcMain.on('submit-form', (event, encInfo) => {
-    //console.log('encInfo:', encInfo);
 
-    const ffmpegPath = app.getAppPath() + '\\tools\\ffmpeg32.exe';
+    let ffmpegPath
+
+    if (devMode) {
+      /* path for development */
+      ffmpegPath = app.getAppPath() + '\\tools\\ffmpeg32.exe';
+    } else {
+      /* path for packeged app */
+      ffmpegPath = app.getAppPath() + '\\..\\..\\tools\\ffmpeg32.exe';
+    }
 
     const ffmpegOptions = [
       '-i', encInfo.src,
@@ -71,7 +81,6 @@ function handleSubmit() {
       '-c:a', 'libopus', '-b:a', '192k',
       encInfo.des
     ];
-    //console.log(ffmpegOptions);
 
     const encProc = child_spawn(ffmpegPath, ffmpegOptions);
 

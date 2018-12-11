@@ -17,27 +17,28 @@ const inputs = {
     des: form.querySelector('input[name="des"]')
 };
 
+/* get avs path */
 btns.src.addEventListener('click', () => {
     const avsPath = dialog.showOpenDialog({
         properties: ['openFile'],
         filters: [{ name: 'AviSynth scripts', extensions: ['avs'] }]
     });
     if (avsPath) {
-        //console.log(avsPath)
         inputs.src.value = avsPath.toString();
     }
 });
 
+/* get output path and filename */
 btns.des.addEventListener('click', () => {
     const outputPath = dialog.showSaveDialog({
         filters: [{ name: 'WebM file', extensions: ['webm'] }]
     });
     if (outputPath) {
-        //console.log(outputPath)
         inputs.des.value = outputPath;
     }
 });
 
+/* form submission to main process */
 form.addEventListener('submit', (event) => {
     event.preventDefault();
     ipcRenderer.send('submit-form', {
