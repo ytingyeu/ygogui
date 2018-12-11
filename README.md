@@ -23,8 +23,11 @@ ffmpeg32 -i src.avs -y -threads 8 -speed 4 -quality good -tile-columns 2 -c:v li
 ```
 Ref: [Recommended Settings for VOD](https://developers.google.com/media/vp9/settings/vod/)
 
+## 注意事項
+官方版 AviSynth 只支援 x86，因此 `ffmpeg` 等工具也必須使用 x86 版本。封裝版所包含的皆為 x86
+
 ## 封裝版下載連結
-準備中
+[GoogleDrive](https://drive.google.com/file/d/1qYJW6W7JDv-cIN1zJm9tD23oc8qh_JDW/view)
 
 ## License
 [GPLv3](LICENSE.md)
