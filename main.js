@@ -1,6 +1,6 @@
 // Modules to control application life and create native browser window
 const { app, BrowserWindow, ipcMain } = require('electron')
-const child = require('child_process').execFile;
+const child_execFile = require('child_process').execFile;
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -58,29 +58,38 @@ app.on('activate', function () {
 
 function handleSubmit() {
   ipcMain.on('submit-form', (event, encInfo) => {
+    console.log('encInfo:', encInfo);
 
+    const ffmpegPath = app.getAppPath() + '\\tools\\ffmpeg32.exe';
+    
+    const ffmpegOptions = [
+      '-i', encInfo.src,
+      '-y', '-threads', '8', '-speed', '4', '-quality', 'good', '-tile-columns', '2',
+      '-c:v', 'libvpx-vp9', '-crf', '18', '-b:v', '0',
+      '-c:a', 'libopus', '-b:a', '192k',
+      encInfo.des
+    ];    
+    console.log(ffmpegOptions);
 
-    let appPath = app.getAppPath()
-    const executablePath = appPath + "\\tools\\ffmpeg32.exe";
-
-    console.log(encInfo);
-    console.log(executablePath);
+    child_execFile(ffmpegPath, ffmpegOptions, function (error, stdout, stderr) {
+      console.log(stdout)
+      console.log(stderr);
+    });
+    
 
     /*
-    const parameters = [
-      "-i ", source,
-      "-y -threads 8 -speed 4 -quality good -tile-columns 2",
-      "-c:v libvpx-vp9 -crf 18 -b:v 0 -c:a libopus -b:a 192k ",
-      destination
-    ];
-
-
-    child(executablePath, parameters, function (err, data) {
-      console.log(err)
-      console.log(data.toString());
-    });
-
+    const cmdStr =
+      '\"' + ffmpegPath + '\"' + ' ' +
+      '-i ' + '\"' + encInfo.src + '\"' + ' ' +
+      '-y -threads 8 -speed 4 -quality good -tile-columns 2 ' +
+      '-c:v libvpx-vp9 -crf 18 -b:v 0 -c:a libopus -b:a 192k ' +
+      '\"' + encInfo.des + '\"';
+    console.log(cmdStr)
+    child.exec(cmdStr, function (error, stdout, stderr) {
+      console.log(stdout)
+      console.log(stderr);
+    });    
     */
-
+  
   });
 }
