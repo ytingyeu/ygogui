@@ -6,6 +6,8 @@ const child_spawn = require('child_process').spawn;
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
 
+// globel variables
+let vDuration
 
 function createWindow() {
   // Create the browser window.
@@ -62,7 +64,6 @@ function handleSubmit() {
 
     const ffmpegPath = app.getAppPath() + '\\tools\\ffmpeg32.exe';
 
-
     const ffmpegOptions = [
       '-i', encInfo.src,
       '-y', '-threads', '8', '-speed', '4', '-quality', 'good', '-tile-columns', '2',
@@ -70,18 +71,34 @@ function handleSubmit() {
       '-c:a', 'libopus', '-b:a', '192k',
       encInfo.des
     ];
-    console.log(ffmpegOptions);
+    //console.log(ffmpegOptions);
 
     const encProc = child_spawn(ffmpegPath, ffmpegOptions);
 
-    encProc.stdout.on('data', (data) => {
-      console.log(`stdout: ${data}`);
+    encProc.stderr.on('data', (data) => {
+      parseFFmpegMsg(`${data}`);
     });
 
-    encProc.stderr.on('data', (data) => {
-      console.log(`stderr: ${data}`);
+    encProc.on('close', (code) => {
+      console.log(`child process exited with code ${code}`);
     });
 
 
   });
+}
+
+function parseFFmpegMsg(msg) {
+
+  // Duration: 00:00:12.00
+  if (msg.includes('Duration')) {
+    vDuration = msg.match(/\d*\:\d*\:\d*\.\d*/g)[0];
+  }
+
+  if (msg.includes('frame=')) {
+    // time=00:00:01.65
+    let vTime = msg.match(/\d*\:\d*\:\d*\.\d*/g)[0];
+
+    mainWindow.webContents.send('update-progress', vTime);
+
+  }
 }

@@ -82,5 +82,6 @@ form.addEventListener('submit', (event) => {
 })();
 
 
-
-
+ipcRenderer.on('update-progress', (event, arg) => {
+    console.log(arg);
+});
