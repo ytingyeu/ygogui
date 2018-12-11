@@ -1,6 +1,6 @@
 // Modules to control application life and create native browser window
 const { app, BrowserWindow, ipcMain } = require('electron')
-const child_execFile = require('child_process').execFile;
+const child_spawn = require('child_process').spawn;
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -39,7 +39,7 @@ app.on('window-all-closed', function () {
   // On macOS it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
   if (process.platform !== 'darwin') {
-    app.quit()
+    app.quit();
   }
 })
 
@@ -47,7 +47,7 @@ app.on('activate', function () {
   // On macOS it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
   if (mainWindow === null) {
-    createWindow()
+    createWindow();
 
   }
 })
@@ -58,38 +58,30 @@ app.on('activate', function () {
 
 function handleSubmit() {
   ipcMain.on('submit-form', (event, encInfo) => {
-    console.log('encInfo:', encInfo);
+    //console.log('encInfo:', encInfo);
 
     const ffmpegPath = app.getAppPath() + '\\tools\\ffmpeg32.exe';
-    
+
+
     const ffmpegOptions = [
       '-i', encInfo.src,
       '-y', '-threads', '8', '-speed', '4', '-quality', 'good', '-tile-columns', '2',
       '-c:v', 'libvpx-vp9', '-crf', '18', '-b:v', '0',
       '-c:a', 'libopus', '-b:a', '192k',
       encInfo.des
-    ];    
+    ];
     console.log(ffmpegOptions);
 
-    child_execFile(ffmpegPath, ffmpegOptions, function (error, stdout, stderr) {
-      console.log(stdout)
-      console.log(stderr);
-    });
-    
+    const encProc = child_spawn(ffmpegPath, ffmpegOptions);
 
-    /*
-    const cmdStr =
-      '\"' + ffmpegPath + '\"' + ' ' +
-      '-i ' + '\"' + encInfo.src + '\"' + ' ' +
-      '-y -threads 8 -speed 4 -quality good -tile-columns 2 ' +
-      '-c:v libvpx-vp9 -crf 18 -b:v 0 -c:a libopus -b:a 192k ' +
-      '\"' + encInfo.des + '\"';
-    console.log(cmdStr)
-    child.exec(cmdStr, function (error, stdout, stderr) {
-      console.log(stdout)
-      console.log(stderr);
-    });    
-    */
-  
+    encProc.stdout.on('data', (data) => {
+      console.log(`stdout: ${data}`);
+    });
+
+    encProc.stderr.on('data', (data) => {
+      console.log(`stderr: ${data}`);
+    });
+
+
   });
 }
