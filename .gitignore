@@ -1,3 +1,6 @@
 node_modules
-tools
 dist
+tools/*
+
+# Whitelist
+!tools/ADD_THIRD_PARTY_TOOLS_HERE
