@@ -4,8 +4,8 @@ const path = require('path');
 const child_spawn = require('child_process').spawn;
 
 // globel variables
-let vDuration
-const devMode = true
+let g_vDuration
+const g_devMode = true
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -19,7 +19,9 @@ function createWindow() {
   mainWindow.loadFile('index.html')
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools({ mode: "bottom" })
+  if (g_devMode) {
+    mainWindow.webContents.openDevTools({ mode: "bottom" })
+  }
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {
@@ -64,9 +66,9 @@ app.on('activate', function () {
 function handleSubmit() {
   ipcMain.on('submit-form', (event, encInfo) => {
 
-    let ffmpegPath
+    let ffmpegPath;
 
-    if (devMode) {
+    if (g_devMode) {
       /* path for development */
       ffmpegPath = app.getAppPath() + '\\tools\\ffmpeg32.exe';
     } else {
@@ -82,32 +84,67 @@ function handleSubmit() {
       encInfo.des
     ];
 
+    progressWindow = new BrowserWindow({ width: 400, height: 300 });
+    progressWindow.loadFile('showProgress.html');
+
+    if (g_devMode) {
+      progressWindow.webContents.openDevTools({ mode: "bottom" });
+    }
+
     const encProc = child_spawn(ffmpegPath, ffmpegOptions);
 
+    /* Handel ffmpeg info from stderr */
     encProc.stderr.on('data', (data) => {
-      parseFFmpegMsg(`${data}`);
+      handleFFmpegMsg(`${data}`);
     });
 
+    /* Handle the end of ffmpeg process */
     encProc.on('close', (code) => {
-      console.log(`child process exited with code ${code}`);
+      //console.log(`child process exited with code ${code}`);
+      progressWindow.close();
+      mainWindow.webContents.send('enc-term');
     });
 
+    /* Handle showProgress window closed */
+    progressWindow.on('closed', function () {
+      progressWindow = null;
+      g_vDuration = null
+      encProc.kill('SIGTERM');
+    });
 
+    /* Handle showProgress window btn-cancel clicked */
+    ipcMain.on('enc-cancel', function () {
+      progressWindow = null;
+      g_vDuration = null
+      encProc.kill('SIGTERM');
+    });
   });
 }
 
-function parseFFmpegMsg(msg) {
+/* 
+ * parse video duration and encoding progress from stderr
+ * and send to progress window
+*/
+function handleFFmpegMsg(msg) {
 
-  // Duration: 00:00:12.00
-  if (msg.includes('Duration')) {
-    vDuration = msg.match(/\d*\:\d*\:\d*\.\d*/g)[0];
-  }
+  let parseRes = msg.match(/\d*\:\d*\:\d*\.\d*/g);
 
-  if (msg.includes('frame=')) {
-    // time=00:00:01.65
-    let vTime = msg.match(/\d*\:\d*\:\d*\.\d*/g)[0];
 
-    mainWindow.webContents.send('update-progress', vTime);
-
+  /* ISSUE:
+   * the msg progressWindow.webContents.send('update-duration', [arg, ]) send
+   * is never caught by showProgress.js
+   * but progressWindow.webContents.send('update-progress', [arg, ]) is good
+  */
+  if (parseRes != null) {
+    // the first matched case is the duration
+    // else are encoding progress
+    if (g_vDuration == null) {
+      g_vDuration = parseRes[0];
+      //progressWindow.webContents.send('update-duration', g_vDuration);
+    } else if (progressWindow != null) {
+      progressWindow.webContents.send('update-progress', parseRes[0], g_vDuration);
+    }
   }
 }
+
+
