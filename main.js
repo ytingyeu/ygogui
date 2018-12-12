@@ -101,7 +101,10 @@ function handleSubmit() {
     /* Handle the end of ffmpeg process */
     encProc.on('close', (code) => {
       //console.log(`child process exited with code ${code}`);
-      progressWindow.close();
+
+      if (progressWindow) {
+        progressWindow.close();
+      }      
       mainWindow.webContents.send('enc-term');
     });
 
