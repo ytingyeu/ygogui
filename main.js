@@ -4,12 +4,13 @@ const path = require('path');
 const child_spawn = require('child_process').spawn;
 
 // globel variables
-let vDuration
-const devMode = true
+const g_devMode = false  //set to false before building
+let g_vDuration
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
-let mainWindow
+let mainWindow;
+let progressWindow;
 
 function createWindow() {
   // Create the browser window.
@@ -19,14 +20,19 @@ function createWindow() {
   mainWindow.loadFile('index.html')
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools({ mode: "bottom" })
+  if (g_devMode) {
+    mainWindow.webContents.openDevTools({ mode: "bottom" })
+  }
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {
     // Dereference the window object, usually you would store windows
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
-    mainWindow = null
+    if (progressWindow) {
+      progressWindow.close()
+    }    
+    mainWindow = null    
   })
 }
 
@@ -52,7 +58,6 @@ app.on('activate', function () {
   // dock icon is clicked and there are no other windows open.
   if (mainWindow === null) {
     createWindow();
-
   }
 })
 
@@ -64,16 +69,13 @@ app.on('activate', function () {
 function handleSubmit() {
   ipcMain.on('submit-form', (event, encInfo) => {
 
-    let ffmpegPath
+    let ffmpegPath;
 
-    if (devMode) {
-      /* path for development */
-      ffmpegPath = app.getAppPath() + '\\tools\\ffmpeg32.exe';
+    if (g_devMode) {
+      ffmpegPath = __dirname + '\\tools\\ffmpeg32.exe';
     } else {
-      /* path for packeged app */
-      ffmpegPath = app.getAppPath() + '\\..\\..\\tools\\ffmpeg32.exe';
+      ffmpegPath = __dirname + '\\..\\tools\\ffmpeg32.exe';
     }
-
     const ffmpegOptions = [
       '-i', encInfo.src,
       '-y', '-threads', '8', '-speed', '4', '-quality', 'good', '-tile-columns', '2',
@@ -82,32 +84,73 @@ function handleSubmit() {
       encInfo.des
     ];
 
-    const encProc = child_spawn(ffmpegPath, ffmpegOptions);
+    progressWindow = new BrowserWindow({ width: 400, height: 300 });
+    progressWindow.loadFile('showProgress.html');
 
-    encProc.stderr.on('data', (data) => {
-      parseFFmpegMsg(`${data}`);
+    progressWindow.webContents.on('did-finish-load', () => {
+
+      if (g_devMode) {
+        progressWindow.webContents.openDevTools({ mode: "bottom" });
+      }
+
+      /* spawn child process for ffmpeg */
+      const encProc = child_spawn(ffmpegPath, ffmpegOptions);
+
+      /* Handle ffmpeg stderr */
+      encProc.stderr.on('data', (data) => {
+        handleFFmpegMsg(`${data}`);
+      });
+
+      /* event the end of ffmpeg process handler*/
+      encProc.on('close', (code) => {
+        //console.log(`child process exited with code ${code}`);
+
+        if (progressWindow) {
+          progressWindow.close();
+        }
+        mainWindow.webContents.send('enc-term');
+      });
+
+      /* event showProgress window closed handler */
+      progressWindow.on('closed', function () {
+        interruptEnc(encProc);
+      });
+
+      /* event showProgress window btn-cancel clicked handler */
+      ipcMain.on('enc-cancel', function () {
+        interruptEnc(encProc);
+      });
     });
-
-    encProc.on('close', (code) => {
-      console.log(`child process exited with code ${code}`);
-    });
-
-
   });
 }
 
-function parseFFmpegMsg(msg) {
+/* 
+ * parse video duration and encoding progress from stderr
+ * and send to progress window
+*/
+function handleFFmpegMsg(msg) {
 
-  // Duration: 00:00:12.00
-  if (msg.includes('Duration')) {
-    vDuration = msg.match(/\d*\:\d*\:\d*\.\d*/g)[0];
+  let parseRes = msg.match(/\d*\:\d*\:\d*\.\d*/g);
+
+  if (parseRes != null && progressWindow != null) {
+    // the first matched case is the duration
+    // else are encoding progress
+    if (g_vDuration == null) {
+      g_vDuration = parseRes[0];
+      progressWindow.webContents.send('update-duration', g_vDuration);
+
+    } else {
+      progressWindow.webContents.send('update-progress', parseRes[0]);
+    }
   }
+}
 
-  if (msg.includes('frame=')) {
-    // time=00:00:01.65
-    let vTime = msg.match(/\d*\:\d*\:\d*\.\d*/g)[0];
-
-    mainWindow.webContents.send('update-progress', vTime);
-
-  }
+/* interrupt encoind process and reset relative variables */
+function interruptEnc(encProc) {
+  progressWindow = null;
+  g_vDuration = null;
+  
+  if (encProc != null){
+    encProc.kill('SIGTERM');
+  }  
 }

@@ -1,6 +1,6 @@
 {
   "name": "ncuacg-enc",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A developing VP9/Opus encoder for NCUACG",
   "repository": "https://github.com/ytingyeu/ncuacg-enc",
   "main": "main.js",
@@ -12,13 +12,21 @@
     "appId": "org.ncuacg.app",
     "win": {
       "target": [
-        "zip"
+        {
+          "target": "zip",
+          "arch": "ia32"
+        }
       ]
-    }
+    },
+    "extraResources": [
+      "./tools/**"
+    ]
   },
   "author": "Tingyeu Yang",
   "license": "GPLv3",
   "devDependencies": {
-    "electron": "^3.0.7"
-  }
+    "electron": "^3.0.7",
+    "electron-builder": "^20.38.3"
+  },
+  "dependencies": {}
 }

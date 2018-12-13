@@ -17,11 +17,14 @@ const inputs = {
     des: form.querySelector('input[name="des"]')
 };
 
-/* get avs path */
+
+/* get source path */
 btns.src.addEventListener('click', () => {
     const avsPath = dialog.showOpenDialog({
         properties: ['openFile'],
-        filters: [{ name: 'AviSynth scripts', extensions: ['avs'] }]
+        filters: [
+            { name: 'All Supported', extensions: ['avs', 'avi', 'mp4', 'mkv'] }            
+        ]
     });
     if (avsPath) {
         inputs.src.value = avsPath.toString();
@@ -38,19 +41,9 @@ btns.des.addEventListener('click', () => {
     }
 });
 
-/* form submission to main process */
-form.addEventListener('submit', (event) => {
-    event.preventDefault();
-    ipcRenderer.send('submit-form', {
-        src: inputs.src.value,
-        des: inputs.des.value
-    });
-});
-
-
-
+/* Get src path by drag & drop */
 (function handleDropFile() {
-    var holder = document.getElementById('avs-src');
+    var holder = document.getElementById('input-src');
 
     holder.ondragover = () => {
         return false;
@@ -82,7 +75,17 @@ form.addEventListener('submit', (event) => {
     };
 })();
 
-
-ipcRenderer.on('update-progress', (event, arg) => {
-    console.log(arg);
+/* Submit form to main process */
+form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    document.getElementById("btn-encode").disabled = true;
+    ipcRenderer.send('submit-form', {
+        src: inputs.src.value,
+        des: inputs.des.value
+    });
 });
+
+ipcRenderer.on('enc-term', (event, arg) => {
+    document.getElementById("btn-encode").disabled = false;
+});
+
