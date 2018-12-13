@@ -4,12 +4,13 @@ const path = require('path');
 const child_spawn = require('child_process').spawn;
 
 // globel variables
+const g_devMode = false  //set to false before building
 let g_vDuration
-const g_devMode = true
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
-let mainWindow
+let mainWindow;
+let progressWindow;
 
 function createWindow() {
   // Create the browser window.
@@ -28,7 +29,10 @@ function createWindow() {
     // Dereference the window object, usually you would store windows
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
-    mainWindow = null
+    if (progressWindow) {
+      progressWindow.close()
+    }    
+    mainWindow = null    
   })
 }
 
@@ -54,7 +58,6 @@ app.on('activate', function () {
   // dock icon is clicked and there are no other windows open.
   if (mainWindow === null) {
     createWindow();
-
   }
 })
 
@@ -69,13 +72,10 @@ function handleSubmit() {
     let ffmpegPath;
 
     if (g_devMode) {
-      /* path for development */
-      ffmpegPath = app.getAppPath() + '\\tools\\ffmpeg32.exe';
+      ffmpegPath = __dirname + '\\tools\\ffmpeg32.exe';
     } else {
-      /* path for packeged app */
-      ffmpegPath = app.getAppPath() + '\\..\\..\\tools\\ffmpeg32.exe';
+      ffmpegPath = __dirname + '\\..\\tools\\ffmpeg32.exe';
     }
-
     const ffmpegOptions = [
       '-i', encInfo.src,
       '-y', '-threads', '8', '-speed', '4', '-quality', 'good', '-tile-columns', '2',
@@ -87,39 +87,39 @@ function handleSubmit() {
     progressWindow = new BrowserWindow({ width: 400, height: 300 });
     progressWindow.loadFile('showProgress.html');
 
-    if (g_devMode) {
-      progressWindow.webContents.openDevTools({ mode: "bottom" });
-    }
+    progressWindow.webContents.on('did-finish-load', () => {
 
-    const encProc = child_spawn(ffmpegPath, ffmpegOptions);
+      if (g_devMode) {
+        progressWindow.webContents.openDevTools({ mode: "bottom" });
+      }
 
-    /* Handel ffmpeg info from stderr */
-    encProc.stderr.on('data', (data) => {
-      handleFFmpegMsg(`${data}`);
-    });
+      /* spawn child process for ffmpeg */
+      const encProc = child_spawn(ffmpegPath, ffmpegOptions);
 
-    /* Handle the end of ffmpeg process */
-    encProc.on('close', (code) => {
-      //console.log(`child process exited with code ${code}`);
+      /* Handle ffmpeg stderr */
+      encProc.stderr.on('data', (data) => {
+        handleFFmpegMsg(`${data}`);
+      });
 
-      if (progressWindow) {
-        progressWindow.close();
-      }      
-      mainWindow.webContents.send('enc-term');
-    });
+      /* event the end of ffmpeg process handler*/
+      encProc.on('close', (code) => {
+        //console.log(`child process exited with code ${code}`);
 
-    /* Handle showProgress window closed */
-    progressWindow.on('closed', function () {
-      progressWindow = null;
-      g_vDuration = null
-      encProc.kill('SIGTERM');
-    });
+        if (progressWindow) {
+          progressWindow.close();
+        }
+        mainWindow.webContents.send('enc-term');
+      });
 
-    /* Handle showProgress window btn-cancel clicked */
-    ipcMain.on('enc-cancel', function () {
-      progressWindow = null;
-      g_vDuration = null
-      encProc.kill('SIGTERM');
+      /* event showProgress window closed handler */
+      progressWindow.on('closed', function () {
+        interruptEnc(encProc);
+      });
+
+      /* event showProgress window btn-cancel clicked handler */
+      ipcMain.on('enc-cancel', function () {
+        interruptEnc(encProc);
+      });
     });
   });
 }
@@ -132,22 +132,25 @@ function handleFFmpegMsg(msg) {
 
   let parseRes = msg.match(/\d*\:\d*\:\d*\.\d*/g);
 
-
-  /* ISSUE:
-   * the msg progressWindow.webContents.send('update-duration', [arg, ]) send
-   * is never caught by showProgress.js
-   * but progressWindow.webContents.send('update-progress', [arg, ]) is good
-  */
-  if (parseRes != null) {
+  if (parseRes != null && progressWindow != null) {
     // the first matched case is the duration
     // else are encoding progress
     if (g_vDuration == null) {
       g_vDuration = parseRes[0];
-      //progressWindow.webContents.send('update-duration', g_vDuration);
-    } else if (progressWindow != null) {
-      progressWindow.webContents.send('update-progress', parseRes[0], g_vDuration);
+      progressWindow.webContents.send('update-duration', g_vDuration);
+
+    } else {
+      progressWindow.webContents.send('update-progress', parseRes[0]);
     }
   }
 }
 
-
+/* interrupt encoind process and reset relative variables */
+function interruptEnc(encProc) {
+  progressWindow = null;
+  g_vDuration = null;
+  
+  if (encProc != null){
+    encProc.kill('SIGTERM');
+  }  
+}

@@ -17,7 +17,8 @@ const inputs = {
     des: form.querySelector('input[name="des"]')
 };
 
-/* get avs path */
+
+/* get source path */
 btns.src.addEventListener('click', () => {
     const avsPath = dialog.showOpenDialog({
         properties: ['openFile'],
