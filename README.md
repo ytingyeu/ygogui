@@ -23,8 +23,8 @@ Ref: [Recommended Settings for VOD](https://developers.google.com/media/vp9/sett
 歡迎提供更佳的參數設定
 
 ## 注意事項
-為了支援只有 x86 的官方版 `AviSynth`，
-本專案所包含的 `ffmpeg` 也是使用 x86 版本
+為了支援只有 32-bit 的官方版 `AviSynth`，
+本專案所包含的 `ffmpeg` 也是使用 32-bit 版本
 
 ## License
 [GPLv3](LICENSE.md)
