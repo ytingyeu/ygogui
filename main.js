@@ -78,8 +78,8 @@ function handleSubmit() {
     }
     const ffmpegOptions = [
       '-i', encInfo.src,
-      '-y', '-threads', '8', '-speed', '4', '-quality', 'good', '-tile-columns', '2',
-      '-c:v', 'libvpx-vp9', '-crf', '18', '-b:v', '0',
+      '-y', '-threads', '8', '-speed', '2', '-tile-columns', '6',
+      '-c:v', 'libvpx-vp9', '-crf', '31', '-b:v', '0', '-frame-parallel', '1',
       '-c:a', 'libopus', '-b:a', '192k',
       encInfo.des
     ];

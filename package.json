@@ -1,8 +1,8 @@
 {
-  "name": "ncuacg-enc",
-  "version": "0.2.0",
-  "description": "A developing VP9/Opus encoder for NCUACG",
-  "repository": "https://github.com/ytingyeu/ncuacg-enc",
+  "name": "ygogui",
+  "version": "0.2.1",
+  "description": "A developing GUI for VP9/Opus encoder",
+  "repository": "https://github.com/ytingyeu/ygogui",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
