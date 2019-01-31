@@ -12,3 +12,7 @@ form{
     border: 1px black solid;
     padding: 1px;
 }
+
+.input-radio{
+    margin-left: 12px;
+}

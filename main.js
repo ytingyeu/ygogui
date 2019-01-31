@@ -4,7 +4,7 @@ const path = require('path');
 const child_spawn = require('child_process').spawn;
 
 // globel variables
-const g_devMode = false  //set to false before building
+const g_devMode = true  //set to false before building
 let g_vDuration
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -31,8 +31,8 @@ function createWindow() {
     // when you should delete the corresponding element.
     if (progressWindow) {
       progressWindow.close()
-    }    
-    mainWindow = null    
+    }
+    mainWindow = null
   })
 }
 
@@ -69,6 +69,8 @@ app.on('activate', function () {
 function handleSubmit() {
   ipcMain.on('submit-form', (event, encInfo) => {
 
+    //console.log(encInfo);
+
     let ffmpegPath;
 
     if (g_devMode) {
@@ -76,13 +78,35 @@ function handleSubmit() {
     } else {
       ffmpegPath = __dirname + '\\..\\tools\\ffmpeg32.exe';
     }
-    const ffmpegOptions = [
+
+    let ffmpegOptions = [
       '-i', encInfo.src,
       '-y', '-threads', '8', '-speed', '2', '-tile-columns', '6',
-      '-c:v', 'libvpx-vp9', '-crf', '31', '-b:v', '0', '-frame-parallel', '1',
-      '-c:a', 'libopus', '-b:a', '192k',
-      encInfo.des
+      '-c:v', 'libvpx-vp9', '-b:v', '0', '-frame-parallel', '1',
+      '-c:a', 'libopus', '-b:a', '192k'
     ];
+
+    switch (encInfo.resolution) {
+      case '1080':
+        ffmpegOptions.push('-crf');
+        ffmpegOptions.push('31');
+        break;
+      case '1440':
+        ffmpegOptions.push('-crf');
+        ffmpegOptions.push('24');
+        break;
+      case '2160':
+        ffmpegOptions.push('-crf');
+        ffmpegOptions.push('15');
+        break;
+      default:
+        ffmpegOptions.push('-crf');
+        ffmpegOptions.push('33');
+        break;
+    }
+
+    ffmpegOptions.push(encInfo.des);
+    //console.log(ffmpegOptions);
 
     progressWindow = new BrowserWindow({ width: 400, height: 300 });
     progressWindow.loadFile('showProgress.html');
@@ -130,6 +154,8 @@ function handleSubmit() {
 */
 function handleFFmpegMsg(msg) {
 
+  //console.log(msg);
+
   let parseRes = msg.match(/\d*\:\d*\:\d*\.\d*/g);
 
   if (parseRes != null && progressWindow != null) {
@@ -149,8 +175,8 @@ function handleFFmpegMsg(msg) {
 function interruptEnc(encProc) {
   progressWindow = null;
   g_vDuration = null;
-  
-  if (encProc != null){
+
+  if (encProc != null) {
     encProc.kill('SIGTERM');
-  }  
+  }
 }

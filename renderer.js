@@ -16,7 +16,8 @@ const btns = {
 
 const inputs = {
     src: form.querySelector('input[name="src"]'),
-    des: form.querySelector('input[name="des"]')
+    des: form.querySelector('input[name="des"]'),
+    resolution: form.querySelector('input[name="resolution"]')
 };
 
 
@@ -84,7 +85,8 @@ form.addEventListener('submit', (event) => {
     document.getElementById("btn-encode").disabled = true;
     ipcRenderer.send('submit-form', {
         src: inputs.src.value,
-        des: inputs.des.value
+        des: inputs.des.value,
+        resolution: inputs.resolution.value
     });
 });
 
