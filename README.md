@@ -23,10 +23,16 @@
 
 ## ffmpeg 參數
 ```
-ffmpeg32 -i src.avs -y -threads 8 -speed 1 -tile-columns 6 -c:v libvpx-vp9 -crf 31 -frame-parallel 1 -b:v 0 -c:a libopus -b:a 192k out.webm
+ffmpeg32 -i src.avs -y -threads 8 -speed 2 -tile-columns 6 -c:v libvpx-vp9 -crf 31 -frame-parallel 1 -b:v 0 -c:a libopus -b:a 192k out.webm
 ```
+crf 的值會根據根據用戶選擇輸入來源的解析度調整
+* 1080p 以下 31
+* 1440p 24
+* 2016p 15
+
+
 Ref: [VP9 Encoding Guide](http://wiki.webmproject.org/ffmpeg/vp9-encoding-guide)，
-歡迎討論更佳的參數設定
+歡迎至 Issue 討論更佳的參數設定
 
 
 ## 注意事項
