@@ -4,7 +4,7 @@ const path = require('path');
 const child_spawn = require('child_process').spawn;
 
 // globel variables
-const g_devMode = true  //set to false before building
+const g_devMode = false  //set to false before building
 let g_vDuration
 
 // Keep a global reference of the window object, if you don't, the window will
