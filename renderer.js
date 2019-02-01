@@ -6,6 +6,8 @@ const { ipcRenderer, remote, shell } = require('electron');
 const { dialog } = remote;
 const form = document.querySelector('form');
 
+const supFileExtension = ['avs', 'avi', 'mp4', 'mkv'];
+
 const btns = {
     src: document.getElementById('selectSrc'),
     des: document.getElementById('selectDes'),
@@ -14,7 +16,8 @@ const btns = {
 
 const inputs = {
     src: form.querySelector('input[name="src"]'),
-    des: form.querySelector('input[name="des"]')
+    des: form.querySelector('input[name="des"]'),
+    resolution: form.querySelector('input[name="resolution"]')
 };
 
 
@@ -23,7 +26,7 @@ btns.src.addEventListener('click', () => {
     const avsPath = dialog.showOpenDialog({
         properties: ['openFile'],
         filters: [
-            { name: 'All Supported', extensions: ['avs', 'avi', 'mp4', 'mkv'] }            
+            { name: 'All Supported', extensions: supFileExtension }            
         ]
     });
     if (avsPath) {
@@ -64,8 +67,9 @@ btns.des.addEventListener('click', () => {
             let f = e.dataTransfer.files[0];
             let fileExtension = f.path.split('.').pop();
 
-            if (fileExtension === 'avs') {
-                let refInputPath = document.getElementById('avs-src');
+            // TO-DO: fix extension validation
+            if (supFileExtension.includes(fileExtension)) {
+                let refInputPath = document.getElementById('input-src');
                 refInputPath.innerHTML = f.path;
                 inputs.src.value = f.path;
             }
@@ -81,7 +85,8 @@ form.addEventListener('submit', (event) => {
     document.getElementById("btn-encode").disabled = true;
     ipcRenderer.send('submit-form', {
         src: inputs.src.value,
-        des: inputs.des.value
+        des: inputs.des.value,
+        resolution: inputs.resolution.value
     });
 });
 
