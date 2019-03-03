@@ -9,7 +9,7 @@
 </head>
 
 <body>
-  <h1>X264? 你在哪一個時代啊?</h1>
+  <h1>H.264? 你在哪一個時代啊?</h1>
   <!-- All of the Node.js APIs are available in this renderer process. -->
   <p>
     We are using Node.js
@@ -24,29 +24,30 @@
 
     <span class="input-group">
       <input type="text" name="src" id="input-src" placeholder="Input Source" required>
-      <span>
-        <button class="button" type="button" id="selectSrc">Browse</button>
-      </span>
+      <button class="button" type="button" id="selectSrc">Browse</button>      
     </span>
 
     <span class="input-group">
       <input type="text" name="des" placeholder="Output Destination" required>
       <button class="button" type="button" id="selectDes">Browse</button>
     </span>
-
+    
     <span class="input-group">
-      來源解析度：
-      <input type="radio" name="resolution" value="1080" class="input-radio" checked> 1080p 以下<br>
-      <input type="radio" name="resolution" value="1440" class="input-radio"> 1440p <br>
-      <input type="radio" name="resolution" value="2160" class="input-radio"> 2160p <br>
+        <p>來源解析度：</p>
+        <label><input type="radio" name="resolution" value="1080" class="input-radio" checked> 1080p 以下</label>
+        <label><input type="radio" name="resolution" value="1440" class="input-radio"> 1440p</label>
+        <label><input type="radio" name="resolution" value="2160" class="input-radio"> 2160p</label>
+    </span>
+    <span class="input-group">
+        <p>其他選項：</p>
+        <label><input type="checkbox" name="deinterlace" value="enable" class="input-checkbox">去交錯</label>
+        <label><input type="checkbox" name="denoise" value="enable" class="input-checkbox">降躁</label>
     </span>
 
-     <button class="button" type="submit" id="btn-encode">Encode</button>
-
-
+    <br>
+    <button class="button" type="submit" id="btn-encode">Encode</button>
 
   </form>
-
 
   <script>
     // You can also require other files to run in this process

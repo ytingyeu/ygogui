@@ -4,8 +4,8 @@ const path = require('path');
 const child_spawn = require('child_process').spawn;
 
 // globel variables
-const g_devMode = false  //set to false before building
-let g_vDuration
+const g_devMode = true;  //set to false before building
+let g_vDuration;
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -17,12 +17,12 @@ function createWindow() {
   mainWindow = new BrowserWindow({ width: 800, height: 600 })
 
   // and load the index.html of the app.
-  mainWindow.loadFile('index.html')
+  mainWindow.loadFile('index.html');
 
   // Open the DevTools.
   if (g_devMode) {
     mainWindow.webContents.openDevTools({ mode: "bottom" })
-  }
+  };
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {
@@ -33,8 +33,8 @@ function createWindow() {
       progressWindow.close()
     }
     mainWindow = null
-  })
-}
+  });
+};
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -51,7 +51,7 @@ app.on('window-all-closed', function () {
   if (process.platform !== 'darwin') {
     app.quit();
   }
-})
+});
 
 app.on('activate', function () {
   // On macOS it's common to re-create a window in the app when the
@@ -59,7 +59,7 @@ app.on('activate', function () {
   if (mainWindow === null) {
     createWindow();
   }
-})
+});
 
 
 /* 
@@ -105,8 +105,22 @@ function handleSubmit() {
         break;
     }
 
+    if (encInfo.deinterlace && encInfo.denoise ) {
+      ffmpegOptions.push('-vf');
+      ffmpegOptions.push('yadif=0:-1:0,bm3d');
+    } else if (encInfo.deinterlace) {
+      ffmpegOptions.push('-vf');
+      ffmpegOptions.push('yadif=0:-1:0');
+    } else if (encInfo.denoise) {
+      ffmpegOptions.push('-vf');
+      ffmpegOptions.push('bm3d');
+    }
+
     ffmpegOptions.push(encInfo.des);
-    //console.log(ffmpegOptions);
+
+    console.log(encInfo.deinterlace);
+    console.log(encInfo.denoise);
+    console.log(ffmpegOptions);
 
     progressWindow = new BrowserWindow({ width: 400, height: 300 });
     progressWindow.loadFile('showProgress.html');
@@ -154,7 +168,7 @@ function handleSubmit() {
 */
 function handleFFmpegMsg(msg) {
 
-  //console.log(msg);
+  console.log(msg);
 
   let parseRes = msg.match(/\d*\:\d*\:\d*\.\d*/g);
 
