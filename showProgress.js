@@ -8,10 +8,11 @@ let refProcessGif = document.getElementById('process-gif');
 
 ipcRenderer.on('update-progress', (event, arg) => {
     refShowProgress.innerHTML = arg;
-
-    if (refProcessGif.style.display === "none") {
-        refProcessGif.style.display = "block";
+    
+    if (refProcessGif.style.opacity !== "1") {
+        refProcessGif.style.opacity = "1";
     }
+
 });
 
 ipcRenderer.on('update-duration', (event, arg) => {
@@ -20,7 +21,7 @@ ipcRenderer.on('update-duration', (event, arg) => {
 
 refBtnCancel.addEventListener('click', () => {
     if (confirm('Are you sure?')) {
-        refProcessGif.style.display = "none";
+        refProcessGif.style.display = "0";
         ipcRenderer.send('enc-cancel');
         remote.getCurrentWindow().close();
     }

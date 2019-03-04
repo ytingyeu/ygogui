@@ -47,6 +47,8 @@ td.no-border {
 #process-gif {
     width: 34px;
     margin-left: 2px;
+    opacity: 0;
+    transition: opacity 1s;
 }
 
 #btn-cancel {
