@@ -3,8 +3,8 @@
 
 <head>
   <meta charset="UTF-8">
-  <link rel="stylesheet" type="text/css" href="foundation.css">
-  <link rel="stylesheet" type="text/css" href="style.css">
+  <link rel="stylesheet" type="text/css" href="./css/foundation.css">
+  <link rel="stylesheet" type="text/css" href="./css/style.css">
   <title>YgoGUI</title>
 </head>
 
@@ -20,28 +20,29 @@
     <script>document.write(process.versions.electron)</script>.
   </p>
 
+  <br>
   <form>
 
     <span class="input-group">
       <input type="text" name="src" id="input-src" placeholder="Input Source" required>
-      <button class="button" type="button" id="selectSrc">Browse</button>      
+      <button class="button" type="button" id="selectSrc">Browse</button>
     </span>
 
     <span class="input-group">
       <input type="text" name="des" placeholder="Output Destination" required>
       <button class="button" type="button" id="selectDes">Browse</button>
     </span>
-    
+
     <span class="input-group">
-        <p>來源解析度：</p>
-        <label><input type="radio" name="resolution" value="1080" class="input-radio" checked> 1080p 以下</label>
-        <label><input type="radio" name="resolution" value="1440" class="input-radio"> 1440p</label>
-        <label><input type="radio" name="resolution" value="2160" class="input-radio"> 2160p</label>
+      <p>來源解析度：</p>
+      <label><input type="radio" name="resolution" value="1080" class="input-radio" checked> 1080p 以下</label>
+      <label><input type="radio" name="resolution" value="1440" class="input-radio"> 1440p</label>
+      <label><input type="radio" name="resolution" value="2160" class="input-radio"> 2160p</label>
     </span>
     <span class="input-group">
-        <p>其他選項：</p>
-        <label><input type="checkbox" name="deinterlace" value="enable" class="input-checkbox">去交錯</label>
-        <label><input type="checkbox" name="denoise" value="enable" class="input-checkbox">降躁</label>
+      <p>其他選項：</p>
+      <label><input type="checkbox" name="deinterlace" value="enable" class="input-checkbox">去交錯</label>
+      <label><input type="checkbox" name="denoise" value="enable" class="input-checkbox">降躁(極慢，慎用)</label>
     </span>
 
     <br>

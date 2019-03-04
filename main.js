@@ -1,10 +1,9 @@
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, ipcMain } = require('electron')
-const path = require('path');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const child_spawn = require('child_process').spawn;
 
 // globel variables
-const g_devMode = true;  //set to false before building
+const g_devMode = false;  //set to false before building
 let g_vDuration;
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -81,9 +80,11 @@ function handleSubmit() {
 
     let ffmpegOptions = [
       '-i', encInfo.src,
-      '-y', '-threads', '8', '-speed', '2', '-tile-columns', '6',
+      '-y', '-threads', '8', '-tile-columns', '6',
+      '-cpu-used', '0', '-deadline', 'good',
+      '-qmin', '0', '-qmax', '63',
       '-c:v', 'libvpx-vp9', '-b:v', '0', '-frame-parallel', '1',
-      '-c:a', 'libopus', '-b:a', '192k'
+      '-c:a', 'libopus', '-b:a', '192k',
     ];
 
     switch (encInfo.resolution) {
@@ -105,7 +106,7 @@ function handleSubmit() {
         break;
     }
 
-    if (encInfo.deinterlace && encInfo.denoise ) {
+    if (encInfo.deinterlace && encInfo.denoise) {
       ffmpegOptions.push('-vf');
       ffmpegOptions.push('yadif=0:-1:0,bm3d');
     } else if (encInfo.deinterlace) {
@@ -118,9 +119,7 @@ function handleSubmit() {
 
     ffmpegOptions.push(encInfo.des);
 
-    console.log(encInfo.deinterlace);
-    console.log(encInfo.denoise);
-    console.log(ffmpegOptions);
+    //console.log(ffmpegOptions);
 
     progressWindow = new BrowserWindow({ width: 400, height: 300 });
     progressWindow.loadFile('showProgress.html');
@@ -168,20 +167,35 @@ function handleSubmit() {
 */
 function handleFFmpegMsg(msg) {
 
-  console.log(msg);
+  //console.log(msg);
 
-  let parseRes = msg.match(/\d*\:\d*\:\d*\.\d*/g);
+  let parseDuration;
+  let parseCurrTime;
 
-  if (parseRes != null && progressWindow != null) {
-    // the first matched case is the duration
-    // else are encoding progress
-    if (g_vDuration == null) {
-      g_vDuration = parseRes[0];
-      progressWindow.webContents.send('update-duration', g_vDuration);
+  if (g_vDuration == null) {
+    parseDuration = msg.match(/Duration\:\s*\d*\:\d*\:\d*\.\d*/g);
 
-    } else {
-      progressWindow.webContents.send('update-progress', parseRes[0]);
+    if (parseDuration != null) {
+      parseDuration = parseDuration[0].match(/\d*\:\d*\:\d*\.\d*/g);
     }
+  }  
+  
+  parseCurrTime = msg.match(/time\=\s*\d*\:\d*\:\d*\.\d*/g);
+
+  if (parseCurrTime != null) {
+    parseCurrTime = parseCurrTime[0].match(/\d*\:\d*\:\d*\.\d*/g);
+  }
+
+  if (progressWindow != null) {
+    if (g_vDuration == null && parseDuration != null) {
+      g_vDuration = parseDuration[0];
+      progressWindow.webContents.send('update-duration', g_vDuration);
+    }
+
+    if (parseCurrTime != null) {
+      progressWindow.webContents.send('update-progress', parseCurrTime[0]);
+    }
+
   }
 }
 
