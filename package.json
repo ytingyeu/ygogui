@@ -1,6 +1,6 @@
 {
   "name": "ygogui",
-  "version": "0.3",
+  "version": "0.4.0",
   "description": "A developing GUI for VP9/Opus encoder",
   "repository": "https://github.com/ytingyeu/ygogui",
   "main": "main.js",

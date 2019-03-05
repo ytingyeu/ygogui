@@ -2543,10 +2543,11 @@ input[type='search'] {
 
 label > [type='checkbox'],
 label > [type='radio'] {
-  margin-right: 0.5rem; }
+  margin-right: 0rem; }
 
 [type='file'] {
   width: 100%; }
+
 
 label {
   display: block;
@@ -2558,6 +2559,7 @@ label {
   label.middle {
     margin: 0 0 1rem;
     padding: 0.5625rem 0; }
+
 
 .help-text {
   margin-top: -0.5rem;

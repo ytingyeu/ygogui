@@ -1,11 +1,10 @@
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, ipcMain } = require('electron')
-const path = require('path');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const child_spawn = require('child_process').spawn;
 
 // globel variables
-const g_devMode = false  //set to false before building
-let g_vDuration
+const g_devMode = false;  //set to false before building
+let g_vDuration;
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -17,12 +16,12 @@ function createWindow() {
   mainWindow = new BrowserWindow({ width: 800, height: 600 })
 
   // and load the index.html of the app.
-  mainWindow.loadFile('index.html')
+  mainWindow.loadFile('index.html');
 
   // Open the DevTools.
   if (g_devMode) {
     mainWindow.webContents.openDevTools({ mode: "bottom" })
-  }
+  };
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {
@@ -33,8 +32,8 @@ function createWindow() {
       progressWindow.close()
     }
     mainWindow = null
-  })
-}
+  });
+};
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -51,7 +50,7 @@ app.on('window-all-closed', function () {
   if (process.platform !== 'darwin') {
     app.quit();
   }
-})
+});
 
 app.on('activate', function () {
   // On macOS it's common to re-create a window in the app when the
@@ -59,7 +58,7 @@ app.on('activate', function () {
   if (mainWindow === null) {
     createWindow();
   }
-})
+});
 
 
 /* 
@@ -80,12 +79,16 @@ function handleSubmit() {
     }
 
     let ffmpegOptions = [
-      '-i', encInfo.src,
-      '-y', '-threads', '8', '-speed', '2', '-tile-columns', '6',
+      '-i', encInfo.src, '-y',
+      '-threads', '4', '-tile-columns', '2',
+      '-cpu-used', '0', '-deadline', 'good',
+      '-qmin', '0', '-qmax', '63',
+      '-crf', '18',
       '-c:v', 'libvpx-vp9', '-b:v', '0', '-frame-parallel', '1',
-      '-c:a', 'libopus', '-b:a', '192k'
+      '-c:a', 'libopus', '-b:a', '192k',
     ];
 
+/*
     switch (encInfo.resolution) {
       case '1080':
         ffmpegOptions.push('-crf');
@@ -104,8 +107,20 @@ function handleSubmit() {
         ffmpegOptions.push('33');
         break;
     }
+*/
+    if (encInfo.deinterlace && encInfo.denoise) {
+      ffmpegOptions.push('-vf');
+      ffmpegOptions.push('yadif=0:-1:0,bm3d');
+    } else if (encInfo.deinterlace) {
+      ffmpegOptions.push('-vf');
+      ffmpegOptions.push('yadif=0:-1:0');
+    } else if (encInfo.denoise) {
+      ffmpegOptions.push('-vf');
+      ffmpegOptions.push('hqdn3d');
+    }
 
     ffmpegOptions.push(encInfo.des);
+
     //console.log(ffmpegOptions);
 
     progressWindow = new BrowserWindow({ width: 400, height: 300 });
@@ -156,18 +171,33 @@ function handleFFmpegMsg(msg) {
 
   //console.log(msg);
 
-  let parseRes = msg.match(/\d*\:\d*\:\d*\.\d*/g);
+  let parseDuration;
+  let parseCurrTime;
 
-  if (parseRes != null && progressWindow != null) {
-    // the first matched case is the duration
-    // else are encoding progress
-    if (g_vDuration == null) {
-      g_vDuration = parseRes[0];
-      progressWindow.webContents.send('update-duration', g_vDuration);
+  if (g_vDuration == null) {
+    parseDuration = msg.match(/Duration\:\s*\d*\:\d*\:\d*\.\d*/g);
 
-    } else {
-      progressWindow.webContents.send('update-progress', parseRes[0]);
+    if (parseDuration != null) {
+      parseDuration = parseDuration[0].match(/\d*\:\d*\:\d*\.\d*/g);
     }
+  }  
+  
+  parseCurrTime = msg.match(/time\=\s*\d*\:\d*\:\d*\.\d*/g);
+
+  if (parseCurrTime != null) {
+    parseCurrTime = parseCurrTime[0].match(/\d*\:\d*\:\d*\.\d*/g);
+  }
+
+  if (progressWindow != null) {
+    if (g_vDuration == null && parseDuration != null) {
+      g_vDuration = parseDuration[0];
+      progressWindow.webContents.send('update-duration', g_vDuration);
+    }
+
+    if (parseCurrTime != null) {
+      progressWindow.webContents.send('update-progress', parseCurrTime[0]);
+    }
+
   }
 }
 

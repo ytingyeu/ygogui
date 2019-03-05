@@ -3,13 +3,13 @@
 
 <head>
   <meta charset="UTF-8">
-  <link rel="stylesheet" type="text/css" href="foundation.css">
-  <link rel="stylesheet" type="text/css" href="style.css">
+  <link rel="stylesheet" type="text/css" href="./css/foundation.css">
+  <link rel="stylesheet" type="text/css" href="./css/style.css">
   <title>YgoGUI</title>
 </head>
 
 <body>
-  <h1>X264? 你在哪一個時代啊?</h1>
+  <h1>H.264? 你在哪一個時代啊?</h1>
   <!-- All of the Node.js APIs are available in this renderer process. -->
   <p>
     We are using Node.js
@@ -20,33 +20,42 @@
     <script>document.write(process.versions.electron)</script>.
   </p>
 
+  <br>
   <form>
 
-    <span class="input-group">
+    <div class="input-group">
       <input type="text" name="src" id="input-src" placeholder="Input Source" required>
-      <span>
-        <button class="button" type="button" id="selectSrc">Browse</button>
-      </span>
-    </span>
+      <button class="button" type="button" id="selectSrc">Browse</button>
+    </div>
 
-    <span class="input-group">
+    <div class="input-group">
       <input type="text" name="des" placeholder="Output Destination" required>
       <button class="button" type="button" id="selectDes">Browse</button>
-    </span>
+    </div>
 
-    <span class="input-group">
-      來源解析度：
-      <input type="radio" name="resolution" value="1080" class="input-radio" checked> 1080p 以下<br>
-      <input type="radio" name="resolution" value="1440" class="input-radio"> 1440p <br>
-      <input type="radio" name="resolution" value="2160" class="input-radio"> 2160p <br>
-    </span>
+    <!--
+    <div class="input-group">
+      <p>來源解析度：</p>
+      <label><input type="radio" name="resolution" value="1080" class="input-radio" checked> 1080p 以下</label>
+      <label><input type="radio" name="resolution" value="1440" class="input-radio"> 1440p</label>
+      <label><input type="radio" name="resolution" value="2160" class="input-radio"> 2160p</label>
+    </div>
+    -->
 
-     <button class="button" type="submit" id="btn-encode">Encode</button>
+    <div class="input-group">
+      <p>其他選項：</p>
+      <label><input type="checkbox" name="deinterlace" value="enable" class="input-checkbox">
+        <span title="降低影片中的掃描線，片源是逐行掃描才建議勾選">去交錯</span>
+      </label>
+      <label><input type="checkbox" name="denoise" value="enable" class="input-checkbox">
+        <span title="降低影片中的顆粒噪訊，片源是古早影片才建議勾選">降噪</span>
+      </label>
+    </div>
 
-
+    <br>
+    <button class="button" type="submit" id="btn-encode">Encode</button>
 
   </form>
-
 
   <script>
     // You can also require other files to run in this process

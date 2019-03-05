@@ -3,20 +3,30 @@
 
 <head>
   <meta charset="UTF-8">
-  <link rel="stylesheet" type="text/css" href="foundation.css">
-  <link rel="stylesheet" type="text/css" href="style.css">
-  <title>Encoding Progress</title>
+  <link rel="stylesheet" type="text/css" href="./css/foundation.css">
+  <link rel="stylesheet" type="text/css" href="./css/style.css">
+  <title>Encoding Status</title>
 </head>
 
 <body>
-  
-  <h1>showProgress.html</h1>
 
-  <p>
-  <span id="show-progress" class="enc-progress">00:00:00.00</span> / 
-  <span id="show-duration" class="enc-progress">00:00:00.00</span>
-  </p>
+  <h4>轉檔狀況</h4>
+  <br>
+  <table class="enc-progress">
+    <tr>
+      <th>目前進度</th>
+      <th>影片總長</th>
+    </tr>
+    <tr>
+      <td id="show-progress">00:00:00.00</td>
+      <td id="show-duration">00:00:00.00</td>
+      <td class="no-border"><img src="./images/processing.gif" alt="Processing animation" id="process-gif"></td>
+    </tr>
+  </table>
+
+  <br>
   <button class="button" id="btn-cancel">Cancel</button>
+
 
   <script>
     require('./showProgress.js')
