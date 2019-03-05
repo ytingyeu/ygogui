@@ -23,7 +23,7 @@
 
 ## ffmpeg 參數
 ```
-ffmpeg32 -i src.avs -y -threads 8 -cpu-used 0 -deadline good -tile-columns 6 -qmin 0 -qmax 63 -c:v libvpx-vp9 -crf 18 -frame-parallel 1 -b:v 0 -c:a libopus -b:a 192k out.webm
+ffmpeg32 -i src.avs -y -threads 4 -tile-columns 2 -cpu-used 0 -deadline good -qmin 0 -qmax 63 -crf 18 -c:v libvpx-vp9 -frame-parallel 1 -b:v 0 -c:a libopus -b:a 192k out.webm
 ```
 
 Ref: [VP9 Encoding Guide](http://wiki.webmproject.org/ffmpeg/vp9-encoding-guide) 與
