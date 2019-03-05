@@ -79,14 +79,16 @@ function handleSubmit() {
     }
 
     let ffmpegOptions = [
-      '-i', encInfo.src,
-      '-y', '-threads', '8', '-tile-columns', '6',
+      '-i', encInfo.src, '-y',
+      '-threads', '4', '-tile-columns', '2',
       '-cpu-used', '0', '-deadline', 'good',
       '-qmin', '0', '-qmax', '63',
+      '-crf', '18',
       '-c:v', 'libvpx-vp9', '-b:v', '0', '-frame-parallel', '1',
       '-c:a', 'libopus', '-b:a', '192k',
     ];
 
+/*
     switch (encInfo.resolution) {
       case '1080':
         ffmpegOptions.push('-crf');
@@ -105,7 +107,7 @@ function handleSubmit() {
         ffmpegOptions.push('33');
         break;
     }
-
+*/
     if (encInfo.deinterlace && encInfo.denoise) {
       ffmpegOptions.push('-vf');
       ffmpegOptions.push('yadif=0:-1:0,bm3d');
@@ -114,7 +116,7 @@ function handleSubmit() {
       ffmpegOptions.push('yadif=0:-1:0');
     } else if (encInfo.denoise) {
       ffmpegOptions.push('-vf');
-      ffmpegOptions.push('bm3d');
+      ffmpegOptions.push('hqdn3d');
     }
 
     ffmpegOptions.push(encInfo.des);

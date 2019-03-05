@@ -23,27 +23,34 @@
   <br>
   <form>
 
-    <span class="input-group">
+    <div class="input-group">
       <input type="text" name="src" id="input-src" placeholder="Input Source" required>
       <button class="button" type="button" id="selectSrc">Browse</button>
-    </span>
+    </div>
 
-    <span class="input-group">
+    <div class="input-group">
       <input type="text" name="des" placeholder="Output Destination" required>
       <button class="button" type="button" id="selectDes">Browse</button>
-    </span>
+    </div>
 
-    <span class="input-group">
+    <!--
+    <div class="input-group">
       <p>來源解析度：</p>
       <label><input type="radio" name="resolution" value="1080" class="input-radio" checked> 1080p 以下</label>
       <label><input type="radio" name="resolution" value="1440" class="input-radio"> 1440p</label>
       <label><input type="radio" name="resolution" value="2160" class="input-radio"> 2160p</label>
-    </span>
-    <span class="input-group">
+    </div>
+    -->
+
+    <div class="input-group">
       <p>其他選項：</p>
-      <label><input type="checkbox" name="deinterlace" value="enable" class="input-checkbox">去交錯</label>
-      <label><input type="checkbox" name="denoise" value="enable" class="input-checkbox">降躁(極慢，慎用)</label>
-    </span>
+      <label><input type="checkbox" name="deinterlace" value="enable" class="input-checkbox">
+        <span title="降低影片中的掃描線，片源是逐行掃描才建議勾選">去交錯</span>
+      </label>
+      <label><input type="checkbox" name="denoise" value="enable" class="input-checkbox">
+        <span title="降低影片中的顆粒噪訊，片源是古早影片才建議勾選">降噪</span>
+      </label>
+    </div>
 
     <br>
     <button class="button" type="submit" id="btn-encode">Encode</button>
