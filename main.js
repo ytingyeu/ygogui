@@ -1,5 +1,5 @@
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu } = require('electron');
 const child_spawn = require('child_process').spawn;
 
 // globel variables
@@ -10,6 +10,7 @@ let g_vDuration;
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
 let progressWindow;
+let infoWindow;
 
 function createWindow() {
   // Create the browser window.
@@ -18,9 +19,32 @@ function createWindow() {
   // and load the index.html of the app.
   mainWindow.loadFile('index.html');
 
+  // create menu
+  var menu = Menu.buildFromTemplate([
+    {
+      label: 'Menu',
+      submenu: [
+        {
+          label: 'About',
+          click() {
+            displayAppInfo();
+          }
+        },
+        {
+          label: 'Exit',
+          click() {
+            app.quit();
+          }
+        }
+      ]
+    }
+  ])
+  Menu.setApplicationMenu(menu);
+
+
   // Open the DevTools.
   if (g_debugMode) {
-    mainWindow.webContents.openDevTools({ mode: "bottom" })
+    mainWindow.webContents.openDevTools({ mode: "bottom" });
   };
 
   // Emitted when the window is closed.
@@ -29,9 +53,14 @@ function createWindow() {
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
     if (progressWindow) {
-      progressWindow.close()
+      progressWindow.close();
     }
-    mainWindow = null
+
+    if (infoWindow) {
+      infoWindow.close();
+    }
+    
+    mainWindow = null;
   });
 };
 
@@ -105,9 +134,12 @@ function handleSubmit() {
 
     ffmpegOptions.push(encInfo.des);
 
-    if (g_debugMode){ console.log(ffmpegOptions); }    
+    if (g_debugMode) { console.log(ffmpegOptions); }
 
     progressWindow = new BrowserWindow({ width: 400, height: 300 });
+    progressWindow.setMenuBarVisibility(false);
+    progressWindow.setMinimizable(false);
+    progressWindow.setMaximizable(false);
     progressWindow.loadFile('showProgress.html');
 
     progressWindow.webContents.on('did-finish-load', () => {
@@ -137,6 +169,7 @@ function handleSubmit() {
       /* event showProgress window closed handler */
       progressWindow.on('closed', function () {
         interruptEnc(encProc);
+        progressWindow = null;
       });
 
       /* event showProgress window btn-cancel clicked handler */
@@ -164,8 +197,8 @@ function handleFFmpegMsg(msg) {
     if (parseDuration != null) {
       parseDuration = parseDuration[0].match(/\d*\:\d*\:\d*\.\d*/g);
     }
-  }  
-  
+  }
+
   parseCurrTime = msg.match(/time\=\s*\d*\:\d*\:\d*\.\d*/g);
 
   if (parseCurrTime != null) {
@@ -193,4 +226,25 @@ function interruptEnc(encProc) {
   if (encProc != null) {
     encProc.kill('SIGTERM');
   }
+}
+
+// development info
+function displayAppInfo() {
+  infoWindow = new BrowserWindow({ width: 350, height: 200 });
+  infoWindow.setMenuBarVisibility(false);
+  infoWindow.setMinimizable(false);
+  infoWindow.setMaximizable(false);
+  infoWindow.loadFile('info.html');
+
+  if (g_debugMode) {
+    infoWindow.webContents.openDevTools({ mode: "bottom" });
+  }
+
+  infoWindow.webContents.on('did-finish-load', () => {
+    infoWindow.webContents.send('app-version', app.getVersion());
+  });
+
+  infoWindow.on('closed', function() {
+    infoWindow = null;
+  });
 }

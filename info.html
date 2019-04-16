@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="./css/infoStyle.css">
+    <title>About</title>
+</head>
+
+<body>
+    <p>
+        作者：Tingyeu Yang (ytingyeu@asu.edu)<br>
+        軟體版號：<span id="app-version"></span> <br>
+        授權方式：GPLv3 <br>
+        <a href="https://github.com/ytingyeu/ygogui">原始碼</a>
+    </p>
+</body>
+
+<script>
+    const { ipcRenderer, shell } = require('electron');
+
+    ipcRenderer.on('app-version', (event, arg) => {
+        document.getElementById('app-version').innerHTML = arg;
+    });
+
+    document.addEventListener('click', function (event) {
+        if (event.target.tagName === 'A' && event.target.href.startsWith('https')) {
+            event.preventDefault();
+            shell.openExternal(event.target.href);
+        }
+    });
+
+</script>
+
+</html>
