@@ -3,7 +3,7 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const child_spawn = require('child_process').spawn;
 
 // globel variables
-const g_devMode = false;  //set to false before building
+const g_debugMode = false;  //set to false before building
 let g_vDuration;
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -19,7 +19,7 @@ function createWindow() {
   mainWindow.loadFile('index.html');
 
   // Open the DevTools.
-  if (g_devMode) {
+  if (g_debugMode) {
     mainWindow.webContents.openDevTools({ mode: "bottom" })
   };
 
@@ -72,7 +72,7 @@ function handleSubmit() {
 
     let ffmpegPath;
 
-    if (g_devMode) {
+    if (g_debugMode) {
       ffmpegPath = __dirname + '\\tools\\ffmpeg32.exe';
     } else {
       ffmpegPath = __dirname + '\\..\\tools\\ffmpeg32.exe';
@@ -81,33 +81,17 @@ function handleSubmit() {
     let ffmpegOptions = [
       '-i', encInfo.src, '-y',
       '-threads', '4', '-tile-columns', '2',
-      '-cpu-used', '0', '-deadline', 'good',
+      //'-cpu-used', '0', 
+      '-deadline', 'good',
       '-qmin', '0', '-qmax', '63',
       '-crf', '18',
       '-c:v', 'libvpx-vp9', '-b:v', '0', '-frame-parallel', '1',
       '-c:a', 'libopus', '-b:a', '192k',
     ];
 
-/*
-    switch (encInfo.resolution) {
-      case '1080':
-        ffmpegOptions.push('-crf');
-        ffmpegOptions.push('31');
-        break;
-      case '1440':
-        ffmpegOptions.push('-crf');
-        ffmpegOptions.push('24');
-        break;
-      case '2160':
-        ffmpegOptions.push('-crf');
-        ffmpegOptions.push('15');
-        break;
-      default:
-        ffmpegOptions.push('-crf');
-        ffmpegOptions.push('33');
-        break;
-    }
-*/
+    ffmpegOptions.push('-cpu-used');
+    ffmpegOptions.push(encInfo.cpuUsed);
+
     if (encInfo.deinterlace && encInfo.denoise) {
       ffmpegOptions.push('-vf');
       ffmpegOptions.push('yadif=0:-1:0,bm3d');
@@ -121,14 +105,14 @@ function handleSubmit() {
 
     ffmpegOptions.push(encInfo.des);
 
-    //console.log(ffmpegOptions);
+    if (g_debugMode){ console.log(ffmpegOptions); }    
 
     progressWindow = new BrowserWindow({ width: 400, height: 300 });
     progressWindow.loadFile('showProgress.html');
 
     progressWindow.webContents.on('did-finish-load', () => {
 
-      if (g_devMode) {
+      if (g_debugMode) {
         progressWindow.webContents.openDevTools({ mode: "bottom" });
       }
 
