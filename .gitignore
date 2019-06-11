@@ -1,6 +1,6 @@
 node_modules
-dist
-app/tools/
+dist/
+app/tools/*
 
 # Whitelist
 !app/tools/ADD_THIRD_PARTY_TOOLS_HERE
