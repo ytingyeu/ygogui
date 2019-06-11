@@ -6,7 +6,8 @@
   "main": "./app/main.js",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder -w"
+    "dist": "electron-builder -w",
+    "postinstall": "electron-builder install-app-deps"
   },
   "build": {
     "appId": "org.ncuacg.app",
@@ -14,7 +15,7 @@
       "target": [
         {
           "target": "zip",
-          "arch": "ia32"
+          "arch": ["ia32", "x64"]
         }
       ]
     },

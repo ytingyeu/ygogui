@@ -3,8 +3,12 @@ const { app, BrowserWindow, ipcMain, Menu } = require('electron');
 const child_spawn = require('child_process').spawn;
 
 // globel variables
-const g_debugMode = false;  //set to false before building
 let g_vDuration;
+
+// since external exe file is called
+// this variable must be set to true when developing
+// while false for building
+const g_debugMode = false;
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -99,18 +103,30 @@ function handleSubmit() {
 
     //console.log(encInfo);
 
+    let path = require('path');
     let ffmpegPath;
+    let ffmpageFileName;
+    let envArch = process.env.PROCESSOR_ARCHITECTURE;
+
+    //console.log(envArch);
+    
+    if (envArch.includes("64")) {
+      ffmpageFileName = "ffmpeg64.exe";
+    } else {
+      ffmpageFileName = "ffmpeg32.exe";
+    }
 
     if (g_debugMode) {
-      ffmpegPath = __dirname + '\\tools\\ffmpeg32.exe';
+      ffmpegPath = path.join(__dirname, 'tools', ffmpageFileName);
     } else {
-      ffmpegPath = __dirname + '\\..\\..\\tools\\ffmpeg32.exe';
+      ffmpegPath = path.join(__dirname, "..", "..", 'tools', ffmpageFileName);
     }
+
+    //console.log(ffmpegPath);
 
     let ffmpegOptions = [
       '-i', encInfo.src, '-y',
       '-threads', '4', '-tile-columns', '2',
-      //'-cpu-used', '0', 
       '-deadline', 'good',
       '-qmin', '0', '-qmax', '63',
       '-crf', '18',
