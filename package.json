@@ -24,10 +24,10 @@
     ]
   },
   "author": "Tingyeu Yang",
-  "license": "GPLv3",
+  "license": "GPL-3.0",
   "devDependencies": {
     "electron": "^3.0.7",
-    "electron-builder": "^20.38.3"
+    "electron-builder": "^20.43.0"
   },
   "dependencies": {}
 }
