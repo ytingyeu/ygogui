@@ -3,7 +3,7 @@
   "version": "0.5.0",
   "description": "A developing GUI for VP9/Opus encoder",
   "repository": "https://github.com/ytingyeu/ygogui",
-  "main": "main.js",
+  "main": "./app/main.js",
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder -w"
@@ -18,9 +18,15 @@
         }
       ]
     },
-    "icon": "./icon.png",
+    "icon": "./favicon.ico",
     "extraResources": [
-      "./tools/**"
+      {
+        "from": "./app/tools/",
+        "to": "tools",
+        "filter": [
+          "**/*"
+        ]
+      }
     ]
   },
   "author": "Tingyeu Yang",

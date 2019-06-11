@@ -17,7 +17,7 @@ function createWindow() {
   mainWindow = new BrowserWindow({ width: 800, height: 600 })
 
   // and load the index.html of the app.
-  mainWindow.loadFile('index.html');
+  mainWindow.loadFile('./app/index.html');
 
   // create menu
   var menu = Menu.buildFromTemplate([
@@ -104,7 +104,7 @@ function handleSubmit() {
     if (g_debugMode) {
       ffmpegPath = __dirname + '\\tools\\ffmpeg32.exe';
     } else {
-      ffmpegPath = __dirname + '\\..\\tools\\ffmpeg32.exe';
+      ffmpegPath = __dirname + '\\..\\..\\tools\\ffmpeg32.exe';
     }
 
     let ffmpegOptions = [
@@ -140,7 +140,7 @@ function handleSubmit() {
     progressWindow.setMenuBarVisibility(false);
     progressWindow.setMinimizable(false);
     progressWindow.setMaximizable(false);
-    progressWindow.loadFile('showProgress.html');
+    progressWindow.loadFile('./app/showProgress.html');
 
     progressWindow.webContents.on('did-finish-load', () => {
 
@@ -234,7 +234,7 @@ function displayAppInfo() {
   infoWindow.setMenuBarVisibility(false);
   infoWindow.setMinimizable(false);
   infoWindow.setMaximizable(false);
-  infoWindow.loadFile('info.html');
+  infoWindow.loadFile('./app/info.html');
 
   if (g_debugMode) {
     infoWindow.webContents.openDevTools({ mode: "bottom" });
