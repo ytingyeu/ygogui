@@ -15,17 +15,18 @@
       "target": [
         {
           "target": "zip",
-          "arch": ["ia32", "x64"]
+          "arch": "ia32"
         }
       ]
     },
     "icon": "./favicon.ico",
     "extraResources": [
       {
-        "from": "./app/tools/",
+        "from": "./tools/",
         "to": "tools",
         "filter": [
-          "**/*"
+          "!**/*",
+          "ffmpeg32.exe"
         ]
       }
     ]

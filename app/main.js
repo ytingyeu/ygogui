@@ -8,7 +8,7 @@ let g_vDuration;
 // since external exe file is called
 // this variable must be set to true when developing
 // while false for building
-const g_debugMode = false;
+const g_devMode = false;
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -21,7 +21,7 @@ function createWindow() {
   mainWindow = new BrowserWindow({ width: 800, height: 600 })
 
   // and load the index.html of the app.
-  mainWindow.loadFile('./app/index.html');
+  mainWindow.loadFile('./app/html/index.html');
 
   // create menu
   var menu = Menu.buildFromTemplate([
@@ -47,7 +47,7 @@ function createWindow() {
 
 
   // Open the DevTools.
-  if (g_debugMode) {
+  if (g_devMode) {
     mainWindow.webContents.openDevTools({ mode: "bottom" });
   };
 
@@ -110,17 +110,12 @@ function handleSubmit() {
 
     //console.log(envArch);
     
-    if (envArch.includes("64")) {
-      ffmpageFileName = "ffmpeg64.exe";
-    } else {
-      ffmpageFileName = "ffmpeg32.exe";
-    }
 
-    if (g_debugMode) {
-      ffmpegPath = path.join(__dirname, 'tools', ffmpageFileName);
-    } else {
-      ffmpegPath = path.join(__dirname, "..", "..", 'tools', ffmpageFileName);
-    }
+    if (g_devMode) {
+      ffmpegPath = path.join(__dirname, '..','tools', "ffmpeg32");
+    } else {      
+      ffmpegPath = path.join(__dirname, "..", "..", 'tools', "ffmpeg32.exe");
+    }  
 
     //console.log(ffmpegPath);
 
@@ -150,17 +145,17 @@ function handleSubmit() {
 
     ffmpegOptions.push(encInfo.des);
 
-    if (g_debugMode) { console.log(ffmpegOptions); }
+    if (g_devMode) { console.log(ffmpegOptions); }
 
     progressWindow = new BrowserWindow({ width: 400, height: 300 });
     progressWindow.setMenuBarVisibility(false);
     progressWindow.setMinimizable(false);
     progressWindow.setMaximizable(false);
-    progressWindow.loadFile('./app/showProgress.html');
+    progressWindow.loadFile('./app/html/showProgress.html');
 
     progressWindow.webContents.on('did-finish-load', () => {
 
-      if (g_debugMode) {
+      if (g_devMode) {
         progressWindow.webContents.openDevTools({ mode: "bottom" });
       }
 
@@ -202,7 +197,7 @@ function handleSubmit() {
 */
 function handleFFmpegMsg(msg) {
 
-  //console.log(msg);
+  console.log(msg);
 
   let parseDuration;
   let parseCurrTime;
@@ -250,9 +245,9 @@ function displayAppInfo() {
   infoWindow.setMenuBarVisibility(false);
   infoWindow.setMinimizable(false);
   infoWindow.setMaximizable(false);
-  infoWindow.loadFile('./app/info.html');
+  infoWindow.loadFile('./app/html/info.html');
 
-  if (g_debugMode) {
+  if (g_devMode) {
     infoWindow.webContents.openDevTools({ mode: "bottom" });
   }
 
@@ -264,3 +259,5 @@ function displayAppInfo() {
     infoWindow = null;
   });
 }
+
+
