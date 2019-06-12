@@ -1,12 +1,13 @@
 {
   "name": "ygogui",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "A developing GUI for VP9/Opus encoder",
   "repository": "https://github.com/ytingyeu/ygogui",
-  "main": "main.js",
+  "main": "./app/main.js",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder -w"
+    "dist": "electron-builder -w",
+    "postinstall": "electron-builder install-app-deps"
   },
   "build": {
     "appId": "org.ncuacg.app",
@@ -18,16 +19,23 @@
         }
       ]
     },
-    "icon": "./icon.png",
+    "icon": "./favicon.ico",
     "extraResources": [
-      "./tools/**"
+      {
+        "from": "./tools/",
+        "to": "tools",
+        "filter": [
+          "!**/*",
+          "ffmpeg32.exe"
+        ]
+      }
     ]
   },
   "author": "Tingyeu Yang",
-  "license": "GPLv3",
+  "license": "GPL-3.0",
   "devDependencies": {
     "electron": "^3.0.7",
-    "electron-builder": "^20.38.3"
+    "electron-builder": "^20.43.0"
   },
   "dependencies": {}
 }

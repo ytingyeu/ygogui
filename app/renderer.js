@@ -17,9 +17,9 @@ const btns = {
 const inputs = {
     src: form.querySelector('input[name="src"]'),
     des: form.querySelector('input[name="des"]'),
-    //resolution: form.querySelector('input[name="resolution"]'),
+    cpuUsed: form.querySelector('input[name="cpu-used"]'),
     deinterlace: form.querySelector('input[name="deinterlace"]'),
-    denoise: form.querySelector('input[name="denoise"]')
+    denoise: form.querySelector('input[name="denoise"]'),
 };
 
 
@@ -88,7 +88,7 @@ form.addEventListener('submit', (event) => {
     ipcRenderer.send('submit-form', {
         src: inputs.src.value,
         des: inputs.des.value,
-        //resolution: inputs.resolution.value,
+        cpuUsed: inputs.cpuUsed.value,
         deinterlace: inputs.deinterlace.checked,
         denoise: inputs.denoise.checked
     });

@@ -23,8 +23,14 @@
 
 ## ffmpeg 參數
 ```
-ffmpeg32 -i src.avs -y -threads 4 -tile-columns 2 -cpu-used 0 -deadline good -qmin 0 -qmax 63 -crf 18 -c:v libvpx-vp9 -frame-parallel 1 -b:v 0 -c:a libopus -b:a 192k out.webm
+ffmpeg32 -i src.avs -y -threads 4 -tile-columns 2 -deadline good -qmin 0 -qmax 63 -crf 18 -c:v libvpx-vp9 -frame-parallel 1 -b:v 0 -c:a libopus -b:a 192k out.webm
 ```
+
+以下為選項：
+* 編碼品質 vs 編碼速度：`-cpu-used` 可選範圍 0 - 2。數值越低品質越好、速度越慢
+* 去交錯：`-vf yadif=0:-1:0,bm3d`。建議來源為非交錯影片時才勾選
+* 降噪：`-vf hqdn3d`。建議來源有顆粒噪訊時才勾選
+
 
 Ref: [VP9 Encoding Guide](http://wiki.webmproject.org/ffmpeg/vp9-encoding-guide) 與
 [Recommended Settings for VOD](https://developers.google.com/media/vp9/settings/vod/)，

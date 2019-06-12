@@ -19,17 +19,18 @@ form {
 
 p {
     font-size: 0.875rem;
-    margin: 0;
-    margin-right: -0.8em;
+    margin: 1em;
     padding: 0;
+}
+
+.path-selector p {
+    margin-right: -0.8em;    
 }
 
 [type='checkbox'], [type='radio'] {
     margin-left: 1em;
     margin-bottom: 0;
 }
-
-
 
 .enc-progress td {
     width: 8em;
@@ -53,4 +54,12 @@ td.no-border {
 
 #btn-cancel {
     margin-top: 10px;
+}
+
+#field-cpu-used {
+    display: flex;
+}
+
+#input-cpu-used {
+    width: 150px;
 }
