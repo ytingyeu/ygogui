@@ -7,7 +7,8 @@
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder -w",
-    "postinstall": "electron-builder install-app-deps"
+    "postinstall": "electron-builder install-app-deps",
+    "clean": "rm -rf node_modules"
   },
   "build": {
     "appId": "org.ncuacg.app",
@@ -26,7 +27,8 @@
         "to": "tools",
         "filter": [
           "!**/*",
-          "ffmpeg32.exe"
+          "ffmpeg.exe",
+          "ffprobe.exe"
         ]
       }
     ]
@@ -35,7 +37,10 @@
   "license": "GPL-3.0",
   "devDependencies": {
     "electron": "^3.0.7",
-    "electron-builder": "^20.43.0"
+    "electron-builder": "^20.44.4"
   },
-  "dependencies": {}
+  "dependencies": {
+    "fluent-ffmpeg": "^2.1.2",
+    "mathjs": "^6.0.2"
+  }
 }
