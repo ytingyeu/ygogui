@@ -29,7 +29,7 @@
 3. 於專案根目錄中，執行 `npm install`
 4. 執行 `npm run dist` 來建構 Windows IA32 版本之執行檔
 5. 本專案使用 `electron-builder` 建構，
-   如有其他建構選項 (如非 Windoes 平台)，請詳閱 [官方手冊](https://www.electron.build/configuration/configuration)
+   如有其他建構選項 (如非 Windows 平台)，請詳閱 [官方手冊](https://www.electron.build/configuration/configuration)
    並修改 `package.json` 當中的 `build` 參數及 `script` 的建構腳本
 
 
