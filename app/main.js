@@ -50,9 +50,9 @@ function initWindows() {
     Menu.setApplicationMenu(menu);
 
     // Open the DevTools.
-    if (g_devMode) {
-        mainWindow.webContents.openDevTools({ mode: "bottom" });
-    }
+    // if (g_devMode) {
+    //     mainWindow.webContents.openDevTools({ mode: "bottom" });
+    // }
 
     // Emitted when the window is closed.
     mainWindow.on("closed", function() {
@@ -96,56 +96,49 @@ app.on("activate", function() {
     }
 });
 
-/*
- * get the path of input/output from mainWindow
- * and execute ffmepg to encode
- */
-ipcMain.on("submit-form", (event, encInfo) => {
-    let ffmpeg_bin;
-    let newJob;
 
-    if (g_devMode) {
-        ffmpeg_bin = path.join(__dirname, "..", "tools");
-    } else {
-        ffmpeg_bin = path.join(__dirname, "..", "..", "tools");
-    }
+// get the path of input/output from mainWindow
+// and execute ffmepg to encode
+ipcMain
+    .on("submit-form", (event, encInfo) => {
+        let ffmpeg_bin;
+        let newJob;
 
-    ffmpeg.setFfmpegPath(path.join(ffmpeg_bin, "ffmpeg.exe"));
-    ffmpeg.setFfprobePath(path.join(ffmpeg_bin, "ffprobe.exe"));
-    
-    newJob = createFfmpegJob(encInfo);
-    createProgressWindow(newJob);
-    
-    
-});
+        if (g_devMode) {
+            ffmpeg_bin = path.join(__dirname, "..", "tools");
+        } else {
+            ffmpeg_bin = path.join(__dirname, "..", "..", "tools");
+        }
+
+        ffmpeg.setFfmpegPath(path.join(ffmpeg_bin, "ffmpeg.exe"));
+        ffmpeg.setFfprobePath(path.join(ffmpeg_bin, "ffprobe.exe"));
+
+        newJob = createFfmpegJob(encInfo);    
+        launchEncoding(newJob);
+    })
+    .on("enc-cancel", function() {
+        interruptEnc(this.newJob);
+    });
 
 
-/* event showProgress window btn-cancel clicked handler */
-ipcMain.on("enc-cancel", function() {
-    interruptEnc(this.newJob);
-});
-
-/* interrupt encoding process */
+/* Interrupt an encoding process */
 function interruptEnc(ffmpegProc) {
     if (ffmpegProc != null) {
         ffmpegProc.kill("SIGTERM");
+        
     }
 
     progressWindow = null;
     mainWindow.webContents.send("enc-term");
 }
 
-// development info
+/* Dispaly application infomation */
 function displayAppInfo() {
     infoWindow = new BrowserWindow({ width: 350, height: 200 });
     infoWindow.setMenuBarVisibility(false);
     infoWindow.setMinimizable(false);
     infoWindow.setMaximizable(false);
     infoWindow.loadFile("./app/html/info.html");
-
-    if (g_devMode) {
-        infoWindow.webContents.openDevTools({ mode: "bottom" });
-    }
 
     infoWindow.webContents.on("did-finish-load", () => {
         infoWindow.webContents.send("app-version", app.getVersion());
@@ -156,7 +149,9 @@ function displayAppInfo() {
     });
 }
 
-function createProgressWindow(newJob) {
+/*Launch an pending encoding job */
+function launchEncoding(newJob) {
+    /* create progress window */
     progressWindow = new BrowserWindow({ width: 400, height: 300 });
     progressWindow.setMenuBarVisibility(false);
     progressWindow.setMinimizable(false);
@@ -171,24 +166,29 @@ function createProgressWindow(newJob) {
 
     /* loading finished, do execute ffmpeg */
     progressWindow.webContents.on("did-finish-load", () => {
-        if (g_devMode) {
-            progressWindow.webContents.openDevTools({ mode: "bottom" });
-        }
+        // if (g_devMode) {
+        //     progressWindow.webContents.openDevTools({ mode: "bottom" });
+        // }
         newJob.run();
     });
 }
 
-function createFfmpegJob(encInfo) {    
+
+function createFfmpegJob(encInfo) {
 
     let newJob = ffmpeg(encInfo.src);
+    let ffmpegOpt;
+    let in_fps;
 
     newJob.ffprobe((err, data) => {
         if (err) {
             console.error(err);
         } else {
-            let in_fps = math.ceil(eval(data.streams[0].r_frame_rate));
+            in_fps = math.ceil(eval(data.streams[0].r_frame_rate));            
 
-            let ffmpegOpt = [
+            console.log("Pass 1");
+             /* Pass 1 */
+            ffmpegOpt = [
                 "-c:v libvpx-vp9",
                 "-b:v 0",
                 "-c:a libopus",
@@ -198,21 +198,16 @@ function createFfmpegJob(encInfo) {
                 "-tile-rows 0",
                 "-threads 4",
                 "-row-mt 1",
+                "-frame-parallel 1",
                 "-qmin 0",
                 "-qmax 63",
                 "-deadline good",
                 "-crf 18",
-                "-cpu-used " + encInfo.cpuUsed,
-                "-frame-parallel 1"
+                "-pass 1",
+                "-cpu-used 4",
+                "-passlogfile " + "passlog",
+                "-y"
             ];
-
-            if (encInfo.deinterlace && encInfo.denoise) {
-                ffmpegOpt.push("-vf yadif=0:-1:0,bm3d");
-            } else if (encInfo.deinterlace) {
-                ffmpegOpt.push("-vf yadif=0:-1:0");
-            } else if (encInfo.denoise) {
-                ffmpegOpt.push("-vf hqdn3d");
-            }
 
             newJob
                 .output(encInfo.des)
@@ -240,10 +235,80 @@ function createFfmpegJob(encInfo) {
                     }
                 })
                 .on("end", () => {
-                    if (progressWindow) {
-                        progressWindow.close();
+                    console.log("Pass 2");
+                    /* Pass 2 */
+                    
+                    let passTwoJob = ffmpeg(encInfo.src);
+                    passTwoJob.output(encInfo.des);
+                    
+                    ffmpegOpt = [
+                        "-c:v libvpx-vp9",
+                        "-b:v 0",
+                        "-c:a libopus",
+                        "-b:a 192k",
+                        "-g " + in_fps * 10,
+                        "-tile-columns 2",
+                        "-tile-rows 0",
+                        "-threads 4",
+                        "-row-mt 1",
+                        "-frame-parallel 1",
+                        "-qmin 0",
+                        "-qmax 63",
+                        "-deadline good",
+                        "-crf 18",
+                        "-pass 2",
+                        "-cpu-used " + encInfo.cpuUsed,
+                        "-passlogfile " + "passlog",
+                        "-y"
+                    ];
+        
+                    if (encInfo.deinterlace && encInfo.denoise) {
+                        ffmpegOpt.push("-vf yadif=0:-1:0,bm3d");
+                    } else if (encInfo.deinterlace) {
+                        ffmpegOpt.push("-vf yadif=0:-1:0");
+                    } else if (encInfo.denoise) {
+                        ffmpegOpt.push("-vf hqdn3d");
                     }
-                    mainWindow.webContents.send("enc-term");
+
+
+                    passTwoJob
+                        .outputOptions(ffmpegOpt)
+                        .on("error", err => {
+                            //dialog.showErrorBox("Error", err.message);
+                            console.log("Error: " + err.message);
+                        })
+                        .on("start", cmdLine => {
+                            console.log("Spawned FFmpeg with command: " + cmdLine);
+                            
+                        })
+                        .on("codecData", codecData => {
+                            progressWindow.webContents.send(
+                                "update-duration",
+                                codecData.duration
+                            );
+                        })
+                        .on("progress", progress => {
+                            //console.log(progress);
+                            if (progressWindow != null) {
+                                progressWindow.webContents.send(
+                                    "update-progress",
+                                    progress.timemark
+                                );
+                            }
+                        })
+                        .on("end", () => {
+                            if (progressWindow) {
+                                progressWindow.close();
+                            }
+                            
+                            mainWindow.webContents.send("enc-term");
+                        })
+                        .run();
+
+                    ipcMain.on("enc-cancel", function() {
+                            interruptEnc(passTwoJob);
+                    });
+                    
                 });
         }
     });
