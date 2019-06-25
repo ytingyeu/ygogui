@@ -1,5 +1,38 @@
+body {    
+    padding: 1.2em 2em;
+}
 
-p {
-    margin: 20px;
-    line-height: 1.5;
+#multipass-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 8em;
+    margin: 0.6em 0 0.6em 0;
+    height: 2.2em;
+    border: 1px black solid;
+    
+}
+
+#process-gif {
+    width: 34px;
+    margin-left: 2px;
+    opacity: 0;
+    transition: opacity 1s;
+}
+
+#btn-cancel {
+    margin-top: 1.4em;
+}
+
+.enc-progress td {
+    width: 8em;
+    height: 2.2em;
+    font-size: 1em;
+    text-align: center;
+    border: 1px solid black;
+}
+
+td.no-border {
+    border: none;
+    width: 2.5em;
 }

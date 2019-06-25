@@ -218,6 +218,7 @@ function createFfmpegJob(encInfo) {
                 })
                 .on("start", cmdLine => {
                     console.log("Spawned FFmpeg with command: " + cmdLine);
+                    progressWindow.send("launch-first-pass");
                 })
                 .on("codecData", codecData => {
                     progressWindow.webContents.send(
@@ -226,7 +227,7 @@ function createFfmpegJob(encInfo) {
                     );
                 })
                 .on("progress", progress => {
-                    console.log(progress);
+                    //console.log(progress);
                     if (progressWindow != null) {
                         progressWindow.webContents.send(
                             "update-progress",
@@ -279,7 +280,7 @@ function createFfmpegJob(encInfo) {
                         })
                         .on("start", cmdLine => {
                             console.log("Spawned FFmpeg with command: " + cmdLine);
-                            
+                            progressWindow.send("launch-second-pass");
                         })
                         .on("codecData", codecData => {
                             progressWindow.webContents.send(

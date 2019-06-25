@@ -4,6 +4,16 @@ let refBtnCancel = document.getElementById("btn-cancel");
 let refShowProgress = document.getElementById('show-progress');
 let refShowDuration = document.getElementById('show-duration');
 let refProcessGif = document.getElementById('process-gif');
+let refMultiPassInfo = document.getElementById('multipass-info');
+
+ipcRenderer.on('launch-first-pass', () => {
+    refMultiPassInfo.innerHTML = "1st Pass";
+
+});
+
+ipcRenderer.on('launch-second-pass', () => {
+    refMultiPassInfo.innerHTML = "2nd Pass";
+});
 
 
 ipcRenderer.on('update-progress', (event, arg) => {
