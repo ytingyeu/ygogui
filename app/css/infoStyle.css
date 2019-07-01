@@ -36,3 +36,19 @@ td.no-border {
     border: none;
     width: 2.5em;
 }
+
+#timemark {
+    width: 300px;
+}
+
+#progress-bar-container {
+    margin-top: 0.1em; 
+    width: 16.2em;
+    background-color: lightgrey;
+}
+
+#progress-bar {
+    width: 0%;
+    height: 30px;
+    background-color: #D6007C;
+}
