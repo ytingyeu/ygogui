@@ -1,5 +1,5 @@
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, ipcMain, Menu, dialog } = require("electron");
+const { app, BrowserWindow, ipcMain, Menu } = require("electron");
 
 //const child_spawn = require("child_process").spawn;
 
@@ -9,9 +9,10 @@ const path = require("path");
 const math = require("mathjs");
 
 // since external exe file is called
-// this variable must be set to true when developing
+// g_devMode must be set to true to develope
 // while false for building
 const g_devMode = false;
+const g_devTool = false;
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -22,7 +23,7 @@ let infoWindow;
 // Winodws init
 function initWindows() {
     // Create the browser window.
-    mainWindow = new BrowserWindow({ width: 800, height: 600 });
+    mainWindow = new BrowserWindow({ width: 700, height: 520 });
 
     // and load the index.html of the app.
     mainWindow.loadFile("./app/html/index.html");
@@ -50,9 +51,9 @@ function initWindows() {
     Menu.setApplicationMenu(menu);
 
     // Open the DevTools.
-    // if (g_devMode) {
-    //     mainWindow.webContents.openDevTools({ mode: "bottom" });
-    // }
+    if (g_devTool) {
+        mainWindow.webContents.openDevTools({ mode: "bottom" });
+    }
 
     // Emitted when the window is closed.
     mainWindow.on("closed", function() {
@@ -101,6 +102,8 @@ app.on("activate", function() {
 // and execute ffmepg to encode
 ipcMain
     .on("submit-form", (event, encInfo) => {
+
+        
         let ffmpeg_bin;
         let newJob;
 
@@ -131,7 +134,7 @@ function interruptEnc(ffmpegProc) {
 
 /* Dispaly application infomation */
 function displayAppInfo() {
-    infoWindow = new BrowserWindow({ width: 350, height: 200 });
+    infoWindow = new BrowserWindow({ width: 450, height: 210 });
     infoWindow.setMenuBarVisibility(false);
     infoWindow.setMinimizable(false);
     infoWindow.setMaximizable(false);
@@ -149,7 +152,7 @@ function displayAppInfo() {
 /*Launch an pending encoding job */
 function launchEncoding(newJob) {
     /* create progress window */
-    progressWindow = new BrowserWindow({ width: 450, height: 350 });
+    progressWindow = new BrowserWindow({ width: 340, height: 300 });
     progressWindow.setMenuBarVisibility(false);
     progressWindow.setMinimizable(false);
     progressWindow.setMaximizable(false);
@@ -168,9 +171,9 @@ function launchEncoding(newJob) {
 
     /* loading finished, do execute ffmpeg */
     progressWindow.webContents.on("did-finish-load", () => {
-        // if (g_devMode) {
-        //     progressWindow.webContents.openDevTools({ mode: "bottom" });
-        // }
+        if (g_devTool) {
+            progressWindow.webContents.openDevTools({ mode: "bottom" });
+        }
         newJob.run();
     });
 }
