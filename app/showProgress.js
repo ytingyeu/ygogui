@@ -3,7 +3,6 @@ const { ipcRenderer, remote } = require('electron');
 let refBtnCancel = document.getElementById("btn-cancel");
 let refShowTimemark = document.getElementById('show-timemark');
 let refShowDuration = document.getElementById('show-duration');
-//let refProcessGif = document.getElementById('process-gif');
 let refMultiPassInfo = document.getElementById('multipass-info');
 let refProgressBar = document.getElementById("progress-bar"); 
 

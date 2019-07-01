@@ -1,0 +1,38 @@
+body {
+    font-family: Microsoft YaHei;    
+    padding: 1.2em 2em;
+    display: table-cell;
+    vertical-align: middle;
+}
+
+#multipass-info {
+    text-align: center;
+    width: 16em;
+    padding: 0.3em;
+    margin-bottom: 1em;
+    border: 1px black dashed;
+}
+
+.progress-table {
+    width: 16em;
+    text-align: center;
+    margin-bottom: 0.2em;
+}
+
+.progress-table td {
+    border: 1px solid black;
+}
+
+#progress-bar-container {
+    margin-bottom: 1em;
+    width: 16em;
+    background-color: lightgrey;
+    border: 1px black solid;
+}
+
+#progress-bar {
+    width: 0%;
+    height: 1.5em;
+    background-color: #D6007C;
+}
+

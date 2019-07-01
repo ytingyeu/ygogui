@@ -3,35 +3,32 @@
 
 <head>
   <meta charset="UTF-8">
-  <link rel="stylesheet" type="text/css" href="../css/foundation.css">
-  <link rel="stylesheet" type="text/css" href="../css/infoStyle.css">
+  <!--<link rel="stylesheet" type="text/css" href="../css/foundation.css">-->
+  <script src="../js/jquery-3.3.1.slim.min.js"></script>
+  <script src="../js/popper.min.js"></script>  
+  <link rel="stylesheet" type="text/css" href="../css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="../css/progressStyle.css">
   <title>Encoding Status</title>
 </head>
 
 <body>
-
-  <h4>轉檔狀況</h4>
-
-  <table class="enc-progress">
-    <div id="multipass-info">Waiting...</div>
-    <div id="timemark">
+  <div id="multipass-info">Pending...</div>
+  <table class="progress-table">
       <tr>
         <th>目前進度</th>
         <th>影片總長</th>
       </tr>
       <tr>
         <td id="show-timemark">00:00:00.00</td>
-        <td id="show-duration">00:00:00.00</td>
-        <!--<td class="no-border"><img src="../images/processing.gif" alt="Processing animation" id="process-gif"></td>-->
+        <td id="show-duration">00:00:00.00</td>  
       </tr>
-    </div>      
   </table>
 
   <div id="progress-bar-container">
     <div id="progress-bar"></div>
   </div> 
 
-  <button class="button" id="btn-cancel">Cancel</button>
+  <button class="btn btn-danger" id="btn-cancel">Cancel</button>
 
 
   <script>
