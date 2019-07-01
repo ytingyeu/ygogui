@@ -1,0 +1,37 @@
+body {
+    font-family: Microsoft YaHei;
+    padding: 20px;
+}
+
+form {
+    width: 550px;
+}
+
+/*
+.path-selector{
+    margin-bottom: 1em;
+}
+*/
+
+/*
+[type='checkbox'], [type='radio'] {
+    margin-left: 1em;
+    margin-bottom: 0;
+}
+*/
+
+.speed-container {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.speed-text {
+    vertical-align: middle;
+}
+
+#cpu-used {
+    width: 150px;
+    vertical-align: middle;
+    margin-top: 6px;
+}
+

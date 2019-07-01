@@ -2,16 +2,16 @@
 // be executed in the renderer process for that window.
 // All of the Node.js APIs are available in this process.
 
-const { ipcRenderer, remote, shell } = require('electron');
+const { ipcRenderer, remote } = require('electron');
 const { dialog } = remote;
-const form = document.querySelector('form');
+const form = document.getElementById('encoding-form');
 
 const supFileExtension = ['avs', 'avi', 'mp4', 'mkv'];
 
 const btns = {
-    src: document.getElementById('selectSrc'),
-    des: document.getElementById('selectDes'),
-    submit: form.querySelector('button[type="submit"]'),
+    src: document.getElementById('btn-select-src'),
+    des: document.getElementById('btn-select-des'),
+    submit: document.getElementById('btn-encode'),
 };
 
 const inputs = {
@@ -25,14 +25,14 @@ const inputs = {
 
 /* get source path */
 btns.src.addEventListener('click', () => {
-    const avsPath = dialog.showOpenDialog({
+    const inputPath = dialog.showOpenDialog({
         properties: ['openFile'],
         filters: [
             { name: 'All Supported', extensions: supFileExtension }            
         ]
     });
-    if (avsPath) {
-        inputs.src.value = avsPath.toString();
+    if (inputPath) {
+        inputs.src.value = inputPath.toString();
     }
 });
 
