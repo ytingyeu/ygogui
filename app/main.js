@@ -11,7 +11,7 @@ const math = require("mathjs");
 // since external exe file is called
 // this variable must be set to true when developing
 // while false for building
-const g_devMode = true;
+const g_devMode = false;
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -115,17 +115,14 @@ ipcMain
 
         newJob = createFfmpegJob(encInfo);    
         launchEncoding(newJob);
-    })
-    .on("enc-cancel", function() {
-        interruptEnc(this.newJob);
     });
+    
 
 
 /* Interrupt an encoding process */
 function interruptEnc(ffmpegProc) {
     if (ffmpegProc != null) {
-        ffmpegProc.kill("SIGTERM");
-        
+        ffmpegProc.kill("SIGTERM");        
     }
 
     progressWindow = null;
@@ -152,7 +149,7 @@ function displayAppInfo() {
 /*Launch an pending encoding job */
 function launchEncoding(newJob) {
     /* create progress window */
-    progressWindow = new BrowserWindow({ width: 400, height: 300 });
+    progressWindow = new BrowserWindow({ width: 450, height: 350 });
     progressWindow.setMenuBarVisibility(false);
     progressWindow.setMinimizable(false);
     progressWindow.setMaximizable(false);
@@ -162,6 +159,11 @@ function launchEncoding(newJob) {
     progressWindow.on("closed", function() {
         interruptEnc(newJob);
         progressWindow = null;
+    });
+
+    ipcMain.on("enc-cancel", (event) => {
+        
+        interruptEnc(newJob);
     });
 
     /* loading finished, do execute ffmpeg */
@@ -227,11 +229,16 @@ function createFfmpegJob(encInfo) {
                     );
                 })
                 .on("progress", progress => {
-                    //console.log(progress);
+                    console.log(progress);
                     if (progressWindow != null) {
+                        
                         progressWindow.webContents.send(
-                            "update-progress",
+                            "update-timemark",
                             progress.timemark
+                        );
+                        progressWindow.webContents.send(
+                            "update-percent",
+                            progress.percent
                         );
                     }
                 })
@@ -241,6 +248,23 @@ function createFfmpegJob(encInfo) {
                     
                     let passTwoJob = ffmpeg(encInfo.src);
                     passTwoJob.output(encInfo.des);
+                    
+                    /**
+                     * TODO: Need refactoring
+                     * 
+                     * fluent-ffmpeg doesn't support two-pass very well.
+                     * I have to do the 2nd pass with callback and fetch 
+                     * the oother child_process. To interrupt the 2nd child_process, 
+                     * copy&paste duped code is used here (the two listener below) 
+                     * or the main process cannot interrput it.
+                     */
+                    progressWindow.on("closed", function() {
+                        interruptEnc(passTwoJob);
+                        progressWindow = null;
+                    });
+                    ipcMain.on("enc-cancel", (event) => {
+                        interruptEnc(passTwoJob);
+                    });
                     
                     ffmpegOpt = [
                         "-c:v libvpx-vp9",
@@ -289,11 +313,16 @@ function createFfmpegJob(encInfo) {
                             );
                         })
                         .on("progress", progress => {
-                            //console.log(progress);
+                            console.log(progress);
                             if (progressWindow != null) {
+                                
                                 progressWindow.webContents.send(
-                                    "update-progress",
+                                    "update-timemark",
                                     progress.timemark
+                                );
+                                progressWindow.webContents.send(
+                                    "update-percent",
+                                    progress.percent
                                 );
                             }
                         })
@@ -304,12 +333,7 @@ function createFfmpegJob(encInfo) {
                             
                             mainWindow.webContents.send("enc-term");
                         })
-                        .run();
-
-                    ipcMain.on("enc-cancel", function() {
-                            interruptEnc(passTwoJob);
-                    });
-                    
+                        .run();                    
                 });
         }
     });
