@@ -1,5 +1,5 @@
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, ipcMain, Menu } = require("electron");
+const { app, BrowserWindow, ipcMain, Menu, dialog } = require("electron");
 
 //const child_spawn = require("child_process").spawn;
 
@@ -134,13 +134,14 @@ function interruptEnc(ffmpegProc) {
 
 /* Dispaly application infomation */
 function displayAppInfo() {
-    infoWindow = new BrowserWindow({ width: 450, height: 210 });
+    infoWindow = new BrowserWindow({ width: 450, height: 210, parent: mainWindow, modal: true, show: false });
     infoWindow.setMenuBarVisibility(false);
     infoWindow.setMinimizable(false);
     infoWindow.setMaximizable(false);
     infoWindow.loadFile("./app/html/info.html");
 
     infoWindow.webContents.on("did-finish-load", () => {
+        infoWindow.show();
         infoWindow.webContents.send("app-version", app.getVersion());
     });
 
@@ -164,8 +165,7 @@ function launchEncoding(newJob) {
         progressWindow = null;
     });
 
-    ipcMain.on("enc-cancel", (event) => {
-        
+    ipcMain.on("enc-cancel", (event) => {        
         interruptEnc(newJob);
     });
 
@@ -174,7 +174,15 @@ function launchEncoding(newJob) {
         if (g_devTool) {
             progressWindow.webContents.openDevTools({ mode: "bottom" });
         }
-        newJob.run();
+
+        try {
+            newJob.run();
+        } 
+        catch(err) {
+            dialog.showErrorBox("無法開始任務", "請檢查輸入路徑與檔案格式");
+            progressWindow.close();
+            mainWindow.webContents.send("enc-term");
+        }   
     });
 }
 
@@ -217,9 +225,8 @@ function createFfmpegJob(encInfo) {
             newJob
                 .output(encInfo.des)
                 .outputOptions(ffmpegOpt)
-                .on("error", err => {
-                    //dialog.showErrorBox("Error", err.message);
-                    console.log("Error: " + err.message);
+                .on("error", (err) => {
+                    console.log(err);
                 })
                 .on("start", cmdLine => {
                     console.log("Spawned FFmpeg with command: " + cmdLine);
@@ -244,7 +251,7 @@ function createFfmpegJob(encInfo) {
                             progress.percent
                         );
                     }
-                })
+                })                
                 .on("end", () => {
                     console.log("Pass 2");
                     /* Pass 2 */
@@ -303,7 +310,7 @@ function createFfmpegJob(encInfo) {
                         .outputOptions(ffmpegOpt)
                         .on("error", err => {
                             //dialog.showErrorBox("Error", err.message);
-                            console.log("Error: " + err.message);
+                            console.log(err);
                         })
                         .on("start", cmdLine => {
                             console.log("Spawned FFmpeg with command: " + cmdLine);
