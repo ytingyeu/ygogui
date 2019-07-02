@@ -7,7 +7,6 @@
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder -w",
-    "postinstall": "electron-builder install-app-deps",
     "clean": "rm -rf node_modules"
   },
   "build": {
@@ -40,6 +39,7 @@
     "electron-builder": "^20.44.4"
   },
   "dependencies": {
+    "e": "0.0.4",
     "fluent-ffmpeg": "^2.1.2",
     "mathjs": "^6.0.2"
   }
