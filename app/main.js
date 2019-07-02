@@ -402,6 +402,7 @@ function createFfmpegJob(encInfo) {
                         "-auto-alt-ref",
                         "-arnr-maxframes 7",
                         "-arnr-strength 5",
+                        "-lag-in-frames 25",
                         "-cpu-used " + encInfo.cpuUsed,
                         "-passlogfile " + "passlog",
                         "-y"
