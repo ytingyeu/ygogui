@@ -35,11 +35,10 @@
   "author": "Tingyeu Yang",
   "license": "GPL-3.0",
   "devDependencies": {
-    "electron": "^3.0.7",
-    "electron-builder": "^20.44.4"
+    "electron-builder": "^20.44.4",
+    "electron": "^5.0.6"
   },
   "dependencies": {
-    "e": "0.0.4",
     "fluent-ffmpeg": "^2.1.2",
     "mathjs": "^6.0.2"
   }

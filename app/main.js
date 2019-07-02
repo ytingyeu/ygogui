@@ -11,7 +11,7 @@ const math = require("mathjs");
 // since external exe file is called
 // g_devMode must be set to true to develope
 // while false for building
-const g_devMode = true;
+const g_devMode = false;
 const g_devTool = false;
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -23,7 +23,14 @@ let infoWindow;
 // Winodws init
 function initWindows() {
     // Create the browser window.
-    mainWindow = new BrowserWindow({ width: 700, height: 550 });
+    mainWindow = new BrowserWindow({ 
+        width: 700,
+        height: 550,
+        webPreferences: {
+            preload: path.join(__dirname, 'preload.js'),
+            nodeIntegration: true
+        }
+    });
 
     // and load the index.html of the app.
     mainWindow.loadFile("./app/html/index.html");
@@ -140,7 +147,16 @@ function interruptEnc(ffmpegProc) {
 
 /* Dispaly application infomation */
 function displayAppInfo() {
-    infoWindow = new BrowserWindow({ width: 450, height: 210, parent: mainWindow, modal: true, show: false });
+    infoWindow = new BrowserWindow({ 
+        width: 450, 
+        height: 210, 
+        parent: mainWindow, 
+        modal: true, 
+        show: false,
+        webPreferences: {
+            nodeIntegration: true
+        } 
+    });
     infoWindow.setMenuBarVisibility(false);
     infoWindow.setMinimizable(false);
     infoWindow.setMaximizable(false);
@@ -159,7 +175,16 @@ function displayAppInfo() {
 /*Launch an pending encoding job */
 function launchEncoding(newJob) {
     /* create progress window */
-    progressWindow = new BrowserWindow({ width: 340, height: 300, parent: mainWindow, modal: true, show: false });
+    progressWindow = new BrowserWindow({ 
+        width: 340, 
+        height: 300, 
+        parent: mainWindow, 
+        modal: true, 
+        show: false,
+        webPreferences: {
+            nodeIntegration: true
+        }
+    });
     progressWindow.setMenuBarVisibility(false);
     //progressWindow.setMinimizable(false);
     progressWindow.setMaximizable(false);

@@ -18,11 +18,6 @@ ipcRenderer.on('launch-second-pass', () => {
 
 ipcRenderer.on('update-timemark', (event, arg) => {
     refShowTimemark.innerHTML = arg;
-    
-    if (refProcessGif.style.opacity !== "1") {
-        refProcessGif.style.opacity = "1";
-    }
-
 });
 
 ipcRenderer.on('update-duration', (event, arg) => {

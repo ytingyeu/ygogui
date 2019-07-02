@@ -16,12 +16,9 @@
   <h1>H.264? 你在哪一個時代啊?</h1>
   <!-- All of the Node.js APIs are available in this renderer process. -->
   <p>
-    We are using Node.js
-    <script>document.write(process.versions.node)</script>,
-    Chromium
-    <script>document.write(process.versions.chrome)</script>,
-    and Electron
-    <script>document.write(process.versions.electron)</script>.    
+    We are using Node.js <span id="node-version"></span>,
+    Chromium <span id="chrome-version"></span>,
+    and Electron <span id="electron-version"></span>.   
   </p>
 
   <br>
@@ -71,10 +68,10 @@
 
   </form>
 
-  <script>
-    // You can also require other files to run in this process
-    require('../renderer.js')
-  </script>
+
+  <!-- You can also require other files to run in this process -->
+  <script src="../renderer.js"></script>
+
 </body>
 
 </html>
