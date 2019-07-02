@@ -40,7 +40,7 @@
 ffmpeg -i src.avs -c:v libvpx-vp9 -b:v 0 -c:a libopus -b:a 192k -g [fps*10] -tile-columns 2 -tile-rows 0 -threads 8 -row-mt 1 -frame-parallel 1 -qmin 0 -qmax 63 -deadline good -crf 18 -pass 1 -cpu-used 4 -passlogfile passlog -y out.webm
 ```
 ```
-ffmpeg -i src.avs -c:v libvpx-vp9 -b:v 0 -c:a libopus -b:a 192k -g [fps*10] -tile-columns 2 -tile-rows 0 -threads 8 -row-mt 1 -frame-parallel 1 -qmin 0 -qmax 63 -deadline good -crf 18 -pass 2 -auto-alt-ref, -arnr-maxframes 7, -arnr-strength 5, -cpu-used [0-2] -passlogfile passlog -y out.webm
+ffmpeg -i src.avs -c:v libvpx-vp9 -b:v 0 -c:a libopus -b:a 192k -g [fps*10] -tile-columns 2 -tile-rows 0 -threads 8 -row-mt 1 -frame-parallel 1 -qmin 0 -qmax 63 -deadline good -crf 18 -pass 2 -auto-alt-ref 1 -arnr-maxframes 7 -arnr-strength 5 -lag-in-frames 25 -cpu-used [0-2] -passlogfile passlog -y out.webm
 ```
 
 ### 快速輸出預覽用影片

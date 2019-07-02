@@ -399,9 +399,10 @@ function createFfmpegJob(encInfo) {
                         "-deadline good",
                         "-crf 18",
                         "-pass 2",
-                        "-auto-alt-ref",
+                        "-auto-alt-ref 1",
                         "-arnr-maxframes 7",
                         "-arnr-strength 5",
+                        "-lag-in-frames 25",
                         "-cpu-used " + encInfo.cpuUsed,
                         "-passlogfile " + "passlog",
                         "-y"
