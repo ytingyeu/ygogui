@@ -1,6 +1,8 @@
 node_modules
 dist/
 tools/
+.vscode
+*.log
 
 # Whitelist
 !app/tools/ADD_THIRD_PARTY_TOOLS_HERE

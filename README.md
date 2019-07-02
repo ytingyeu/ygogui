@@ -29,20 +29,30 @@
 3. 於專案根目錄中，執行 `npm install`
 4. 執行 `npm run dist` 來建構 Windows IA32 版本之執行檔
 5. 本專案使用 `electron-builder` 建構，
-   如有其他建構選項 (如非 Windoes 平台)，請詳閱 [官方手冊](https://www.electron.build/configuration/configuration)
+   如有其他建構選項 (如非 Windows 平台)，請詳閱 [官方手冊](https://www.electron.build/configuration/configuration)
    並修改 `package.json` 當中的 `build` 參數及 `script` 的建構腳本
 
 
 
 ## ffmpeg 參數
+### 一般轉檔 (2-Pass)
 ```
-ffmpeg32 -i src.avs -y -threads 4 -tile-columns 2 -deadline good -qmin 0 -qmax 63 -crf 18 -c:v libvpx-vp9 -frame-parallel 1 -b:v 0 -c:a libopus -b:a 192k out.webm
+ffmpeg -i src.avs -c:v libvpx-vp9 -b:v 0 -c:a libopus -b:a 192k -g [fps*10] -tile-columns 2 -tile-rows 0 -threads 4 -row-mt 1 -frame-parallel 1 -qmin 0" -qmax 63 -deadline good -crf 18 -pass 1 -cpu-used 4 -passlogfile passlog -y out.webm
+```
+```
+ffmpeg -i src.avs -c:v libvpx-vp9 -b:v 0 -c:a libopus -b:a 192k -g [fps*10] -tile-columns 2 -tile-rows 0 -threads 4 -row-mt 1 -frame-parallel 1 -qmin 0 -qmax 63 -deadline good -crf 18 -pass 2 -cpu-used [0-2] -passlogfile passlog -y out.webm
 ```
 
-以下為選項：
-* 編碼品質 vs 編碼速度：`-cpu-used` 限制可選範圍 0 - 2。數值越低品質越好、速度越慢
-* 去交錯：`-vf yadif=0:-1:0,bm3d`。建議來源為非交錯影片時才勾選
-* 降噪：`-vf hqdn3d`。建議來源有顆粒噪訊時才勾選
+### 快速輸出預覽用影片
+```
+ffmpeg -i src.avs -c:v libvpx-vp9 -b:v 0 -c:a libopus -b:a 192k -g [fps*10] -tile-columns 2 -tile-rows 0 -threads 4 -row-mt 1 -frame-parallel 1 -qmin 4 -qmax 48 -deadline realtime -cpu-used 6 -y out.webm
+```
+
+### 選項說明：
+- 編碼品質 vs 編碼速度：`-cpu-used` 限制可選範圍 0 - 2。數值越低品質越好、速度越慢。
+- 快速輸出預覽用：使用 1-pass 且 realtime 等級的參數；建議僅用來快速檢查畫面是否缺漏。
+- 去交錯：`-vf yadif=0:-1:0,bm3d`；建議來源為非交錯影片時才勾選。
+- 降噪：`-vf hqdn3d`；建議來源有顆粒噪訊時才勾選。
 
 
 Ref: [VP9 Encoding Guide](http://wiki.webmproject.org/ffmpeg/vp9-encoding-guide) 與

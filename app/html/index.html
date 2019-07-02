@@ -3,8 +3,12 @@
 
 <head>
   <meta charset="UTF-8">
-  <link rel="stylesheet" type="text/css" href="../css/foundation.css">
-  <link rel="stylesheet" type="text/css" href="../css/style.css">
+
+  <script src="../js/jquery-3.3.1.slim.min.js"></script>
+  <script src="../js/popper.min.js"></script>  
+  <link rel="stylesheet" type="text/css" href="../css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="../css/indexStyle.css">
+  
   <title>YgoGUI</title>
 </head>
 
@@ -12,53 +16,62 @@
   <h1>H.264? 你在哪一個時代啊?</h1>
   <!-- All of the Node.js APIs are available in this renderer process. -->
   <p>
-    We are using Node.js
-    <script>document.write(process.versions.node)</script>,
-    Chromium
-    <script>document.write(process.versions.chrome)</script>,
-    and Electron
-    <script>document.write(process.versions.electron)</script>.    
+    We are using Node.js <span id="node-version"></span>,
+    Chromium <span id="chrome-version"></span>,
+    and Electron <span id="electron-version"></span>.   
   </p>
 
   <br>
-  <form>
+  <form class="form-group" id="encoding-form">
 
-    <div class="input-group path-selector">
-      <input type="text" name="src" id="input-src" placeholder="Input Source" required>
-      <button class="button" type="button" id="selectSrc">Browse</button>
+    <div class="input-group mb-3">
+        <input type="text" class="form-control" id="input-src" name="src" placeholder="Input Source" required>
+        <div class="input-group-append">
+          <button class="btn btn-outline-secondary" type="button" id="btn-select-src">Browse</button>
+        </div>
+    </div>
+    <div class="input-group mb-3">
+        <input type="text" class="form-control" id="input-des" name="des" placeholder="Output Destination" required>
+        <div class="input-group-append">
+          <button class="btn btn-outline-secondary" type="button" id="btn-select-des">Browse</button>
+        </div>
     </div>
 
-    <div class="input-group path-selector">
-      <input type="text" name="des" placeholder="Output Destination" required>
-      <button class="button" type="button" id="selectDes">Browse</button>
+    <div class="input-group d-flex my-4 speed-container">        
+        <label class="font-weight-bold indigo-text mr-2 mt-1 speed-text" for="cpu-used">最佳品質/最慢</label>
+        <div><input type="range" class="custom-range" id="cpu-used" min="0" max="2" value="0" name="cpu-used"></div>
+        <label class="font-weight-bold indigo-text ml-2 mt-1 speed-text" for="cpu-used">中等品質/稍快</label>
     </div>
- 
-    <h6>編碼品質 vs 編碼速度</h6>
-    <div class="input-group" id="field-cpu-used">        
-        <p>最高品質/低速</p>
-        <input type="range" id="input-cpu-use" min="0" max="2" value="0" name="cpu-used">
-        <p>中等品質/快速</p>
-    </div>
-  
-    <h6>其他選項 (一般情況不建議勾選)</h6>
-    <div class="input-group">      
-      <label><input type="checkbox" name="deinterlace" value="enable" class="input-checkbox">
-        <span title="降低影片中的掃描線，片源是逐行掃描才建議勾選">去交錯</span>
+
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" id="preview" name="preview">
+      <label class="form-check-label" for="preview">
+          快速輸出預覽用影片 (將覆蓋速度設定)
       </label>
-      <label><input type="checkbox" name="denoise" value="enable" class="input-checkbox">
-        <span title="降低影片中的顆粒噪訊，片源是古早影片才建議勾選">降噪</span>
-      </label>
+    </div>
+    
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="deinterlace" name="deinterlace">
+        <label class="form-check-label" for="deinterlace">
+            去交錯：片源是逐行掃描才建議勾選
+        </label>
     </div>
 
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="denoise" name="denoise">
+        <label class="form-check-label" for="denoise">
+            降噪：片源有古早影片顆粒噪訊才建議勾選
+        </label>
+    </div>
     <br>
-    <button class="button" type="submit" id="btn-encode">Encode</button>
+    <button class="btn btn-primary" type="submit" id="btn-encode">Encode</button>
 
   </form>
 
-  <script>
-    // You can also require other files to run in this process
-    require('../renderer.js')
-  </script>
+
+  <!-- You can also require other files to run in this process -->
+  <script src="../renderer.js"></script>
+
 </body>
 
 </html>

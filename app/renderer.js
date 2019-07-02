@@ -2,16 +2,16 @@
 // be executed in the renderer process for that window.
 // All of the Node.js APIs are available in this process.
 
-const { ipcRenderer, remote, shell } = require('electron');
+const { ipcRenderer, remote } = require('electron');
 const { dialog } = remote;
-const form = document.querySelector('form');
+const form = document.getElementById('encoding-form');
 
 const supFileExtension = ['avs', 'avi', 'mp4', 'mkv'];
 
 const btns = {
-    src: document.getElementById('selectSrc'),
-    des: document.getElementById('selectDes'),
-    submit: form.querySelector('button[type="submit"]'),
+    src: document.getElementById('btn-select-src'),
+    des: document.getElementById('btn-select-des'),
+    submit: document.getElementById('btn-encode'),
 };
 
 const inputs = {
@@ -20,19 +20,20 @@ const inputs = {
     cpuUsed: form.querySelector('input[name="cpu-used"]'),
     deinterlace: form.querySelector('input[name="deinterlace"]'),
     denoise: form.querySelector('input[name="denoise"]'),
+    preview: form.querySelector('input[name="preview"]'),
 };
 
 
 /* get source path */
 btns.src.addEventListener('click', () => {
-    const avsPath = dialog.showOpenDialog({
+    const inputPath = dialog.showOpenDialog({
         properties: ['openFile'],
         filters: [
             { name: 'All Supported', extensions: supFileExtension }            
         ]
     });
-    if (avsPath) {
-        inputs.src.value = avsPath.toString();
+    if (inputPath) {
+        inputs.src.value = inputPath.toString();
     }
 });
 
@@ -43,6 +44,14 @@ btns.des.addEventListener('click', () => {
     });
     if (outputPath) {
         inputs.des.value = outputPath;
+    }
+});
+
+document.getElementById("preview").addEventListener('change', (event) => {
+    if (event.target.checked) {
+        document.getElementById("cpu-used").disabled = true;
+    } else {
+        document.getElementById("cpu-used").disabled = false;
     }
 });
 
@@ -90,11 +99,12 @@ form.addEventListener('submit', (event) => {
         des: inputs.des.value,
         cpuUsed: inputs.cpuUsed.value,
         deinterlace: inputs.deinterlace.checked,
-        denoise: inputs.denoise.checked
+        denoise: inputs.denoise.checked,
+        preview: inputs.preview.checked
     });
 });
 
-ipcRenderer.on('enc-term', (event, arg) => {
+ipcRenderer.on('enc-term', () => {
     document.getElementById("btn-encode").disabled = false;
 });
 
