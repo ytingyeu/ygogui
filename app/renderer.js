@@ -20,6 +20,7 @@ const inputs = {
     cpuUsed: form.querySelector('input[name="cpu-used"]'),
     deinterlace: form.querySelector('input[name="deinterlace"]'),
     denoise: form.querySelector('input[name="denoise"]'),
+    preview: form.querySelector('input[name="preview"]'),
 };
 
 
@@ -43,6 +44,14 @@ btns.des.addEventListener('click', () => {
     });
     if (outputPath) {
         inputs.des.value = outputPath;
+    }
+});
+
+document.getElementById("preview").addEventListener('change', (event) => {
+    if (event.target.checked) {
+        document.getElementById("cpu-used").disabled = true;
+    } else {
+        document.getElementById("cpu-used").disabled = false;
     }
 });
 
@@ -90,7 +99,8 @@ form.addEventListener('submit', (event) => {
         des: inputs.des.value,
         cpuUsed: inputs.cpuUsed.value,
         deinterlace: inputs.deinterlace.checked,
-        denoise: inputs.denoise.checked
+        denoise: inputs.denoise.checked,
+        preview: inputs.preview.checked
     });
 });
 

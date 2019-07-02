@@ -11,7 +11,7 @@ const math = require("mathjs");
 // since external exe file is called
 // g_devMode must be set to true to develope
 // while false for building
-const g_devMode = false;
+const g_devMode = true;
 const g_devTool = false;
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -23,7 +23,7 @@ let infoWindow;
 // Winodws init
 function initWindows() {
     // Create the browser window.
-    mainWindow = new BrowserWindow({ width: 700, height: 520 });
+    mainWindow = new BrowserWindow({ width: 700, height: 550 });
 
     // and load the index.html of the app.
     mainWindow.loadFile("./app/html/index.html");
@@ -115,8 +115,14 @@ ipcMain
 
         ffmpeg.setFfmpegPath(path.join(ffmpeg_bin, "ffmpeg.exe"));
         ffmpeg.setFfprobePath(path.join(ffmpeg_bin, "ffprobe.exe"));
+        
+        if (encInfo.preview) {
+            newJob = createFfmpegJobPreview(encInfo);
 
-        newJob = createFfmpegJob(encInfo);    
+        } else {
+            newJob = createFfmpegJob(encInfo);
+        }
+
         launchEncoding(newJob);
     });
     
@@ -153,9 +159,9 @@ function displayAppInfo() {
 /*Launch an pending encoding job */
 function launchEncoding(newJob) {
     /* create progress window */
-    progressWindow = new BrowserWindow({ width: 340, height: 300 });
+    progressWindow = new BrowserWindow({ width: 340, height: 300, parent: mainWindow, modal: true, show: false });
     progressWindow.setMenuBarVisibility(false);
-    progressWindow.setMinimizable(false);
+    //progressWindow.setMinimizable(false);
     progressWindow.setMaximizable(false);
     progressWindow.loadFile("./app/html/showProgress.html");
 
@@ -175,6 +181,8 @@ function launchEncoding(newJob) {
             progressWindow.webContents.openDevTools({ mode: "bottom" });
         }
 
+        progressWindow.show();
+
         try {
             newJob.run();
         } 
@@ -185,6 +193,80 @@ function launchEncoding(newJob) {
         }   
     });
 }
+
+function createFfmpegJobPreview(encInfo) {
+    let newJob = ffmpeg(encInfo.src);
+    let ffmpegOpt;
+    let in_fps;
+
+    newJob.ffprobe((err, data) => {
+        if (err) {
+            console.error(err);
+        } else {
+            in_fps = math.ceil(eval(data.streams[0].r_frame_rate));            
+
+            console.log("Preview");
+
+            ffmpegOpt = [
+                "-c:v libvpx-vp9",
+                "-b:v 0",
+                "-c:a libopus",
+                "-b:a 192k",
+                "-g " + in_fps * 10,
+                "-tile-columns 2",
+                "-tile-rows 0",
+                "-threads 4",
+                "-row-mt 1",
+                "-frame-parallel 1",
+                "-qmin 4",
+                "-qmax 48",
+                "-deadline realtime",
+                "-cpu-used 6",
+                "-y"
+            ];
+
+            newJob
+                .output(encInfo.des)
+                .outputOptions(ffmpegOpt)
+                .on("error", (err) => {
+                    console.log(err);
+                })
+                .on("start", cmdLine => {
+                    console.log("Spawned FFmpeg with command: " + cmdLine);
+                    progressWindow.send("launch-first-pass");
+                })
+                .on("codecData", codecData => {
+                    progressWindow.webContents.send(
+                        "update-duration",
+                        codecData.duration
+                    );
+                })
+                .on("progress", progress => {
+                    console.log(progress);
+                    if (progressWindow != null) {
+                        
+                        progressWindow.webContents.send(
+                            "update-timemark",
+                            progress.timemark
+                        );
+                        progressWindow.webContents.send(
+                            "update-percent",
+                            progress.percent
+                        );
+                    }
+                })                
+                .on("end", () => {
+                    if (progressWindow) {
+                        progressWindow.close();
+                    }                    
+                    mainWindow.webContents.send("enc-term");
+                });
+        }
+    });
+
+    return newJob;
+}
+
 
 
 function createFfmpegJob(encInfo) {

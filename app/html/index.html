@@ -28,17 +28,6 @@
   <br>
   <form class="form-group" id="encoding-form">
 
-    <!--
-    <div class="input-group path-selector">
-      <input type="text" class="form-control" name="src" id="input-src" placeholder="Input Source" required>
-      <button class="btn btn-secondary input-group-prepend" type="button" id="selectSrc">Browse</button>
-    </div>
-    <div class="input-group path-selector">
-      <input type="text" class="form-control" name="des" placeholder="Output Destination" required>
-      <button class="btn btn-secondary" type="button" id="selectDes">Browse</button>
-    </div>
-    -->
-
     <div class="input-group mb-3">
         <input type="text" class="form-control" id="input-src" name="src" placeholder="Input Source" required>
         <div class="input-group-append">
@@ -52,36 +41,19 @@
         </div>
     </div>
 
-    <!--
-    <h6>編碼品質 vs 編碼速度</h6>
-    <div class="input-group">
-        <div>
-          <span>高品質/低速</span>
-          <input type="range" id="input-cpu-use" min="1" max="4" value="1" name="cpu-used">
-          <span>低品質/快速</span>
-        </div>
-    </div>
-    -->
-
     <div class="input-group d-flex my-4 speed-container">        
-        <label class="font-weight-bold indigo-text mr-2 mt-1 speed-text" for="cpu-used">高品質/低速</label>
-        <div><input type="range" class="custom-range" id="cpu-used" min="1" max="4" value="1" name="cpu-used"></div>
-        <label class="font-weight-bold indigo-text ml-2 mt-1 speed-text" for="cpu-used">低品質/快速</label>
+        <label class="font-weight-bold indigo-text mr-2 mt-1 speed-text" for="cpu-used">最佳品質/最慢</label>
+        <div><input type="range" class="custom-range" id="cpu-used" min="0" max="2" value="0" name="cpu-used"></div>
+        <label class="font-weight-bold indigo-text ml-2 mt-1 speed-text" for="cpu-used">中等品質/稍快</label>
     </div>
-  
-    
-    <!--
-    <h6>其他選項 (一般情況不建議勾選)</h6>
-    <div class="input-group">      
-      <label><input type="checkbox" name="deinterlace" class="input-checkbox">
-        <span title="降低影片中的掃描線，片源是逐行掃描才建議勾選">去交錯</span>
-      </label>
-      <label><input type="checkbox" name="denoise" class="input-checkbox">
-        <span title="降低影片中的顆粒噪訊，片源是古早影片才建議勾選">降噪</span>
-      </label>
-    </div>
-    -->
 
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" id="preview" name="preview">
+      <label class="form-check-label" for="preview">
+          快速輸出預覽用影片 (將覆蓋速度設定)
+      </label>
+    </div>
+    
     <div class="form-check">
         <input class="form-check-input" type="checkbox" id="deinterlace" name="deinterlace">
         <label class="form-check-label" for="deinterlace">
