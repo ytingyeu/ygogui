@@ -25,14 +25,10 @@ body {
 
 #progress-bar-container {
     margin-bottom: 1em;
-    width: 16em;
-    background-color: lightgrey;
-    border: 1px black solid;
 }
 
 #progress-bar {
     width: 0%;
-    height: 1.5em;
-    background-color: #D6007C;
+    background-color: #f542bc;
 }
 
