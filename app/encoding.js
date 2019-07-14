@@ -5,10 +5,16 @@ const path = require("path");
 let newJob;
 let passTwoJob;
 
-ipcRenderer.on('prepare-job', (event, encInfo, ffmpeg_bin) => {    
-
+ipcRenderer.on('set-env', (evnet, ffmpeg_bin) => {
     ffmpeg.setFfmpegPath(path.join(ffmpeg_bin, "ffmpeg.exe"));
-    ffmpeg.setFfprobePath(path.join(ffmpeg_bin, "ffprobe.exe"));
+    ffmpeg.setFfprobePath(path.join(ffmpeg_bin, "ffprobe.exe"));    
+    ipcRenderer.send('env-set-ready');
+})
+
+ipcRenderer.on('prepare-job', (event, encInfo) => {
+
+    newJob = null;
+    passTwoJob = null;
 
     if (encInfo.preview) {
         newJob = createFfmpegJobPreview(encInfo);
@@ -217,7 +223,7 @@ function createFfmpegJob(encInfo) {
                     passTwoJob
                         .outputOptions(ffmpegOpt)
                         .on("error", err => {
-                            dialog.showErrorBox("Error", err.message);
+                            //dialog.showErrorBox("Error", err.message);                            
                             console.log(err);
                         })
                         .on("start", cmdLine => {

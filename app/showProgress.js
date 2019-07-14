@@ -33,5 +33,7 @@ refBtnCancel.addEventListener('click', () => {
 });
 
 ipcRenderer.on('update-percent', (event, percent) => {
-    refProgressBar.style.width = percent.toFixed(2) + "%";
+    if (percent) {
+        refProgressBar.style.width = percent.toFixed(2) + "%";
+    }    
 });

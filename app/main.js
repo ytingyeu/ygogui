@@ -1,12 +1,6 @@
 // Modules to control application life and create native browser window
 const { app, BrowserWindow, ipcMain, Menu, dialog } = require("electron");
-
-//const child_spawn = require("child_process").spawn;
-
-// Modules for ffmpeg control
-const ffmpeg = require("fluent-ffmpeg");
 const path = require("path");
-const math = require("mathjs");
 
 // since external exe file is called
 // g_devMode must be set to true to develope
@@ -20,12 +14,12 @@ let mainWindow;
 let progressWindow;
 let infoWindow;
 
-// Winodws init
+// main winodw init
 function initWindows() {
     // Create the browser window.
     mainWindow = new BrowserWindow({ 
-        width: 700,
-        height: 550,
+        width: 660,
+        height: 560,
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
             nodeIntegration: true
@@ -36,7 +30,7 @@ function initWindows() {
     mainWindow.loadFile("./app/html/index.html");
 
     // create menu
-    var menu = Menu.buildFromTemplate([
+    let mainMenu = Menu.buildFromTemplate([
         {
             label: "Menu",
             submenu: [
@@ -44,6 +38,12 @@ function initWindows() {
                     label: "About",
                     click() {
                         displayAppInfo();
+                    }
+                },
+                {
+                    label: "Open DevTools",
+                    click() {                        
+                        mainWindow.webContents.openDevTools({ mode: "undocked"});
                     }
                 },
                 {
@@ -55,12 +55,25 @@ function initWindows() {
             ]
         }
     ]);
-    Menu.setApplicationMenu(menu);
+
+    Menu.setApplicationMenu(mainMenu);
 
     // Open the DevTools.
     if (g_devTool) {
-        mainWindow.webContents.openDevTools({ mode: "bottom" });
+        mainWindow.webContents.openDevTools({ mode: "bottom"});
     }
+
+    // after the main page is loaded, set ffmpeg path
+    mainWindow.webContents.on('did-finish-load', () => {
+        let ffmpeg_bin;
+
+        if (g_devMode) {
+            ffmpeg_bin = path.join(__dirname, "..", "tools");
+        } else {
+            ffmpeg_bin = path.join(__dirname, "..", "..", "tools");
+        }
+        mainWindow.webContents.send('set-env', ffmpeg_bin);
+    });
 
     // Emitted when the window is closed.
     mainWindow.on("closed", function() {
@@ -106,16 +119,8 @@ app.on("activate", function() {
 
 
 // get the path of input/output from mainWindow
-ipcMain.on('submit-form', (event, encInfo) => {        
-    let ffmpeg_bin;    
-
-    if (g_devMode) {
-        ffmpeg_bin = path.join(__dirname, "..", "tools");
-    } else {
-        ffmpeg_bin = path.join(__dirname, "..", "..", "tools");
-    }
-
-    mainWindow.webContents.send("prepare-job", encInfo, ffmpeg_bin);
+ipcMain.on('submit-form', (event, encInfo) => {    
+    mainWindow.webContents.send('prepare-job', encInfo);
 });
 
 ipcMain.on('job-ready', () => {
@@ -184,10 +189,31 @@ function launchEncoding() {
             nodeIntegration: true
         }
     });
+    
     progressWindow.setMenuBarVisibility(false);
     progressWindow.setMaximizable(false);
     progressWindow.setClosable(false);
     progressWindow.loadFile("./app/html/showProgress.html");
+
+    // macOS DOES NOT support win.setMenu()    
+    if (process.platform === 'linux' || process.platform === 'win32') {
+        progressWindow.setMenuBarVisibility(true);
+        let progressMenu = Menu.buildFromTemplate([
+            {
+                label: "Menu",
+                submenu: [
+                    {
+                        label: "Open DevTools",
+                        click() {
+                            progressWindow.webContents.openDevTools({ mode: "undocked" });
+                        }
+                    },
+                ]
+            }
+        ]);
+        progressWindow.setMenu(progressMenu);
+    }
+    
 
     /* event showProgress window closed handler */
     progressWindow.on("closed", function() {        
