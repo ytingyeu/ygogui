@@ -6,6 +6,7 @@ let refShowDuration = document.getElementById('show-duration');
 let refMultiPassInfo = document.getElementById('multipass-info');
 let refProgressBar = document.getElementById("progress-bar"); 
 
+
 ipcRenderer.on('launch-first-pass', () => {
     refMultiPassInfo.innerHTML = "1st Pass";
 

@@ -106,10 +106,8 @@ app.on("activate", function() {
 
 
 // get the path of input/output from mainWindow
-// and execute ffmepg to encode
-ipcMain.on("submit-form", (event, encInfo) => {        
+ipcMain.on('submit-form', (event, encInfo) => {        
     let ffmpeg_bin;
-    //let newJob;
 
     if (g_devMode) {
         ffmpeg_bin = path.join(__dirname, "..", "tools");
@@ -120,31 +118,30 @@ ipcMain.on("submit-form", (event, encInfo) => {
     mainWindow.webContents.send("prepare-job", encInfo, ffmpeg_bin);
 });
 
-ipcMain.on('job-ready', () => {    
+ipcMain.on('job-ready', () => {
     launchEncoding();
 });
 
+ipcMain.on('launch-first-pass', () => {
+    progressWindow.send("launch-first-pass");
+});
+
+ipcMain.on('launch-second-pass', () => {
+    progressWindow.send("launch-second-pass");
+});
+
 ipcMain.on('cancel-clicked', () => {
-    //interruptEnc(newJob);
     mainWindow.send('interrupt-encoding');
 });
 
-ipcMain.on('enc-interrupted', () => {
-    mainWindow.send('enc-terminated');
+ipcMain.on('enc-terminated', () => {
+    if (progressWindow) {
+        progressWindow.setClosable(true);
+        progressWindow.close();
+    }
+    mainWindow.send('enable-btn-encode');
 });
 
-
-
-
-/* Interrupt an encoding process */
-function interruptEnc(ffmpegProc) {
-    if (ffmpegProc != null) {
-        ffmpegProc.kill("SIGTERM");
-    }
-
-    progressWindow = null;
-    mainWindow.webContents.send("enc-term");
-}
 
 /* Dispaly application infomation */
 function displayAppInfo() {
@@ -176,8 +173,6 @@ function displayAppInfo() {
 /*Launch an pending encoding job */
 function launchEncoding() {
 
-    //console.log(newJob);
-
     /* create progress window */
     progressWindow = new BrowserWindow({ 
         width: 340, 
@@ -190,288 +185,41 @@ function launchEncoding() {
         }
     });
     progressWindow.setMenuBarVisibility(false);
-    //progressWindow.setMinimizable(false);
     progressWindow.setMaximizable(false);
+    progressWindow.setClosable(false);
     progressWindow.loadFile("./app/html/showProgress.html");
 
     /* event showProgress window closed handler */
-    progressWindow.on("closed", function() {
-        //interruptEnc(newJob);
-        mainWindow.send("interrupt-encoding");
+    progressWindow.on("closed", function() {        
         progressWindow = null;
     });    
 
-    /* loading finished, do execute ffmpeg */
+    /* loading finished, execute ffmpeg and handle progress info */
     progressWindow.webContents.on("did-finish-load", () => {
         if (g_devTool) {
             progressWindow.webContents.openDevTools({ mode: "bottom" });
         }
 
-        //progressWindow.show();        
+        ipcMain.on("update-duration", (event, duration) => {
+            progressWindow.webContents.send("update-duration", duration);
+        }); 
 
+        ipcMain.on("update-progress", (event, data) => {
+            progressWindow.webContents.send("update-timemark", data.timemark);
+            progressWindow.webContents.send("update-percent", data.percent);
+        });
+
+        /* Start ffmpeg job */
         try {
-            //newJob.run();
-            mainWindow.webContents.send("run-job", () => {                
-            });
-            
+            mainWindow.webContents.send('run-job');            
         } 
         catch(err) {
-            dialog.showErrorBox("無法開始任務", "請檢查輸入路徑與檔案格式");
-            console.log(err);
+            dialog.showErrorBox("發生錯誤", err);
             progressWindow.close();
             mainWindow.webContents.send("enc-terminated");
-        }   
-    });
-}
-
-ipcMain.on("update-progress", (event, data) => {
-    progressWindow.webContents.send("update-timemark", data.timemark);
-    progressWindow.webContents.send("update-percent", data.percent);
-});
-
-ipcMain.on("update-duration", (event, duration) => {
-    progressWindow.webContents.send("update-duration", duration);
-});
-
-
-function createFfmpegJobPreview(encInfo) {
-    let newJob = ffmpeg(encInfo.src).output(encInfo.des);
-    let ffmpegOpt;
-    let in_fps;
-
-    newJob.ffprobe((err, data) => {
-        if (err) {
-            console.log(err);
-        } else {
-            in_fps = math.ceil(eval(data.streams[0].r_frame_rate));            
-
-            console.log("Preview");
-
-            ffmpegOpt = [
-                "-c:v libvpx-vp9",
-                "-b:v 0",
-                "-c:a libopus",
-                "-b:a 192k",
-                "-g " + in_fps * 10,
-                "-tile-columns 2",
-                "-tile-rows 0",
-                "-threads 8",
-                "-row-mt 1",
-                "-frame-parallel 1",
-                "-qmin 0",
-                "-qmax 63",
-                "-deadline realtime",
-                "-cpu-used 6"
-            ];
-
-            newJob                
-                .outputOptions(ffmpegOpt)
-                .on("error", (err) => {
-                    console.log(err);
-                })
-                .on("start", cmdLine => {
-                    console.log("Spawned FFmpeg with command: " + cmdLine);
-                    progressWindow.send("launch-first-pass");
-                })
-                .on("codecData", codecData => {
-                    progressWindow.webContents.send(
-                        "update-duration",
-                        codecData.duration
-                    );
-                })
-                .on("progress", progress => {
-                    console.log(progress);
-                    if (progressWindow != null) {
-                        
-                        progressWindow.webContents.send(
-                            "update-timemark",
-                            progress.timemark
-                        );
-                        progressWindow.webContents.send(
-                            "update-percent",
-                            progress.percent
-                        );
-                    }
-                })                
-                .on("end", () => {
-                    if (progressWindow) {
-                        progressWindow.close();
-                    }                    
-                    mainWindow.webContents.send("enc-term");
-                });
         }
     });
-
-    return newJob;
 }
 
 
 
-function createFfmpegJob(encInfo) {
-
-    let newJob = ffmpeg(encInfo.src)
-                    .addOption('-f', 'null')
-                    .output('/dev/null');
-                    
-    let ffmpegOpt;
-    let in_fps;
-    console.log(encInfo.des);
-
-    newJob.ffprobe((err, data) => {
-        if (err) {
-            console.error(err);
-        } else {
-            in_fps = math.ceil(eval(data.streams[0].r_frame_rate));            
-
-            console.log("Pass 1");
-             /* Pass 1 */
-            ffmpegOpt = [
-                "-c:v libvpx-vp9",
-                "-b:v 0",
-                "-c:a libopus",
-                "-b:a 192k",
-                "-g " + in_fps * 10,
-                "-tile-columns 2",
-                "-tile-rows 0",
-                "-threads 8",
-                "-row-mt 1",
-                "-frame-parallel 1",
-                "-qmin 0",
-                "-qmax 63",
-                "-deadline good",
-                "-crf 18",
-                "-pass 1",
-                "-cpu-used 4",
-                "-passlogfile " + "passlog"
-            ];
-
-            newJob                
-                .outputOptions(ffmpegOpt)
-                .on("error", (err) => {
-                    console.log(err);
-                })
-                .on("start", cmdLine => {
-                    console.log("Spawned FFmpeg with command: " + cmdLine);
-                    progressWindow.send("launch-first-pass");
-                })
-                .on("codecData", codecData => {
-                    progressWindow.webContents.send(
-                        "update-duration",
-                        codecData.duration
-                    );
-                })
-                .on("progress", progress => {
-                    //console.log(progress);
-                    if (progressWindow != null) {
-                        
-                        progressWindow.webContents.send(
-                            "update-timemark",
-                            progress.timemark
-                        );
-                        progressWindow.webContents.send(
-                            "update-percent",
-                            progress.percent
-                        );
-                    }
-                })                
-                .on("end", () => {
-                    console.log("Pass 2");
-                    /* Pass 2 */
-                    
-                    let passTwoJob = ffmpeg(encInfo.src).output(encInfo.des);
-                    
-                    /**
-                     * TODO: Need refactoring
-                     * 
-                     * fluent-ffmpeg doesn't support two-pass very well.
-                     * I have to do the 2nd pass with callback and fetch 
-                     * the oother child_process. To interrupt the 2nd child_process, 
-                     * copy&paste duped code is used here (the two listener below) 
-                     * or the main process cannot interrput it.
-                     */
-                    progressWindow.on("closed", function() {
-                        interruptEnc(passTwoJob);
-                        progressWindow = null;
-                    });
-                    ipcMain.on("enc-cancel", (event) => {
-                        interruptEnc(passTwoJob);
-                    });
-                    
-                    ffmpegOpt = [
-                        "-c:v libvpx-vp9",
-                        "-b:v 0",
-                        "-c:a libopus",
-                        "-b:a 192k",
-                        "-g " + in_fps * 10,
-                        "-tile-columns 2",
-                        "-tile-rows 0",
-                        "-threads 8",
-                        "-row-mt 1",
-                        "-frame-parallel 1",
-                        "-qmin 0",
-                        "-qmax 63",
-                        "-deadline good",
-                        "-crf 18",
-                        "-pass 2",
-                        "-auto-alt-ref 1",
-                        "-arnr-maxframes 7",
-                        "-arnr-strength 5",
-                        "-lag-in-frames 25",
-                        "-cpu-used " + encInfo.cpuUsed,
-                        "-passlogfile " + "passlog"
-                    ];
-        
-                    if (encInfo.deinterlace && encInfo.denoise) {
-                        ffmpegOpt.push("-vf yadif=0:-1:0,bm3d");
-                    } else if (encInfo.deinterlace) {
-                        ffmpegOpt.push("-vf yadif=0:-1:0");
-                    } else if (encInfo.denoise) {
-                        ffmpegOpt.push("-vf hqdn3d");
-                    }
-
-
-                    passTwoJob
-                        .outputOptions(ffmpegOpt)
-                        .on("error", err => {
-                            //dialog.showErrorBox("Error", err.message);
-                            console.log(err);
-                        })
-                        .on("start", cmdLine => {
-                            console.log("Spawned FFmpeg with command: " + cmdLine);
-                            progressWindow.send("launch-second-pass");
-                        })
-                        .on("codecData", codecData => {
-                            progressWindow.webContents.send(
-                                "update-duration",
-                                codecData.duration
-                            );
-                        })
-                        .on("progress", progress => {
-                            //console.log(progress);
-                            if (progressWindow != null) {
-                                
-                                progressWindow.webContents.send(
-                                    "update-timemark",
-                                    progress.timemark
-                                );
-                                progressWindow.webContents.send(
-                                    "update-percent",
-                                    progress.percent
-                                );
-                            }
-                        })
-                        .on("end", () => {
-                            if (progressWindow) {
-                                progressWindow.close();
-                            }
-                            
-                            mainWindow.webContents.send("enc-term");
-                        })
-                        .run();                    
-                });
-        }
-    });
-
-    return newJob;
-
-}

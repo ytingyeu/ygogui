@@ -23,12 +23,14 @@ ipcRenderer.on('prepare-job', (event, encInfo, ffmpeg_bin) => {
 });
 
 ipcRenderer.on('run-job', (event, windowRef) => {
-    //progressWindow = windowRef;
     newJob.run();
 });
 
 ipcRenderer.on('interrupt-encoding', () => {
-    interruptEnc();
+    if (newJob != null) {
+        newJob.kill("SIGTERM");
+    }
+    ipcRenderer.send("enc-terminated");
 })
 
 function createFfmpegJobPreview(encInfo) {
@@ -90,7 +92,7 @@ function createFfmpegJobPreview(encInfo) {
                     // if (progressWindow) {
                     //     progressWindow.close();
                     // }                    
-                    //mainWindow.webContents.send("enc-term");
+                    ipcRenderer.send("enc-terminated");
                 });
         }
     });
@@ -260,15 +262,4 @@ function createFfmpegJob(encInfo) {
 
     return newJob;
 
-}
-
-
-/* Interrupt an encoding process */
-function interruptEnc() {
-    if (newJob != null) {
-        newJob.kill("SIGTERM");
-    }
-
-    //progressWindow = null;
-    ipcRenderer.send("enc-interrupted");
 }
