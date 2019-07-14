@@ -11,8 +11,8 @@ const math = require("mathjs");
 // since external exe file is called
 // g_devMode must be set to true to develope
 // while false for building
-const g_devMode = true;
-const g_devTool = true;
+const g_devMode = false;
+const g_devTool = false;
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -107,7 +107,7 @@ app.on("activate", function() {
 
 // get the path of input/output from mainWindow
 ipcMain.on('submit-form', (event, encInfo) => {        
-    let ffmpeg_bin;
+    let ffmpeg_bin;    
 
     if (g_devMode) {
         ffmpeg_bin = path.join(__dirname, "..", "tools");
@@ -201,12 +201,16 @@ function launchEncoding() {
         }
 
         ipcMain.on("update-duration", (event, duration) => {
-            progressWindow.webContents.send("update-duration", duration);
+            if (progressWindow) {
+                progressWindow.webContents.send("update-duration", duration);
+            }            
         }); 
 
         ipcMain.on("update-progress", (event, data) => {
-            progressWindow.webContents.send("update-timemark", data.timemark);
-            progressWindow.webContents.send("update-percent", data.percent);
+            if (progressWindow) {
+                progressWindow.webContents.send("update-timemark", data.timemark);
+                progressWindow.webContents.send("update-percent", data.percent);
+            }            
         });
 
         /* Start ffmpeg job */
@@ -214,7 +218,7 @@ function launchEncoding() {
             mainWindow.webContents.send('run-job');            
         } 
         catch(err) {
-            dialog.showErrorBox("發生錯誤", err);
+            dialog.showErrorBox("Error", err.message);
             progressWindow.close();
             mainWindow.webContents.send("enc-terminated");
         }

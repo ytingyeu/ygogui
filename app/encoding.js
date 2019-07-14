@@ -2,12 +2,10 @@ const ffmpeg = require("fluent-ffmpeg");
 const math = require("mathjs");
 const path = require("path");
 
-
 let newJob;
-//let progressWindow;
+let passTwoJob;
 
-ipcRenderer.on('prepare-job', (event, encInfo, ffmpeg_bin) => {
-    console.log(encInfo);
+ipcRenderer.on('prepare-job', (event, encInfo, ffmpeg_bin) => {    
 
     ffmpeg.setFfmpegPath(path.join(ffmpeg_bin, "ffmpeg.exe"));
     ffmpeg.setFfprobePath(path.join(ffmpeg_bin, "ffprobe.exe"));
@@ -22,14 +20,19 @@ ipcRenderer.on('prepare-job', (event, encInfo, ffmpeg_bin) => {
     ipcRenderer.send('job-ready');
 });
 
-ipcRenderer.on('run-job', (event, windowRef) => {
+ipcRenderer.on('run-job', () => {
     newJob.run();
 });
 
 ipcRenderer.on('interrupt-encoding', () => {
+    if (passTwoJob != null) {
+        passTwoJob.kill("SIGTERM")
+    }
+
     if (newJob != null) {
         newJob.kill("SIGTERM");
     }
+
     ipcRenderer.send("enc-terminated");
 })
 
@@ -79,7 +82,6 @@ function createFfmpegJobPreview(encInfo) {
                     );
                 })
                 .on("progress", progress => {
-                        
                         ipcRenderer.send(
                             "update-progress",
                             {
@@ -87,11 +89,8 @@ function createFfmpegJobPreview(encInfo) {
                                 percent: progress.percent
                             }
                         );
-                })                
-                .on("end", () => {
-                    // if (progressWindow) {
-                    //     progressWindow.close();
-                    // }                    
+                })
+                .on("end", () => {                
                     ipcRenderer.send("enc-terminated");
                 });
         }
@@ -147,40 +146,38 @@ function createFfmpegJob(encInfo) {
                 })
                 .on("start", cmdLine => {
                     console.log("Spawned FFmpeg with command: " + cmdLine);
-                    progressWindow.send("launch-first-pass");
+                    ipcRenderer.send("launch-first-pass");
                 })
                 .on("codecData", codecData => {
-                    progressWindow.webContents.send(
+                    ipcRenderer.send(
                         "update-duration",
                         codecData.duration
                     );
                 })
                 .on("progress", progress => {
                     //console.log(progress);
-                    if (progressWindow != null) {
-                        
-                        progressWindow.webContents.send(
-                            "update-timemark",
-                            progress.timemark
-                        );
-                        progressWindow.webContents.send(
-                            "update-percent",
-                            progress.percent
-                        );
-                    }
+                    ipcRenderer.send(
+                        "update-progress",
+                        {
+                            timemark: progress.timemark,
+                            percent: progress.percent
+                        }
+                    );
                 })                
                 .on("end", () => {
                     console.log("Pass 2");
                     /* Pass 2 */
                     
-                    let passTwoJob = ffmpeg(encInfo.src).output(encInfo.des);
+                    passTwoJob = ffmpeg(encInfo.src).output(encInfo.des);
                     
                     /**
                      * TODO: Need refactoring
                      * 
                      * fluent-ffmpeg doesn't support two-pass very well.
                      * I have to do the 2nd pass with callback and fetch 
-                     * the oother child_process. To interrupt the 2nd child_process, 
+                     * the other child_process. 
+                     * 
+                     * To interrupt the 2nd child_process, 
                      * copy&paste duped code is used here (the two listener below) 
                      * or the main process cannot interrput it.
                      */
@@ -217,45 +214,36 @@ function createFfmpegJob(encInfo) {
                         ffmpegOpt.push("-vf hqdn3d");
                     }
 
-
                     passTwoJob
                         .outputOptions(ffmpegOpt)
                         .on("error", err => {
-                            //dialog.showErrorBox("Error", err.message);
+                            dialog.showErrorBox("Error", err.message);
                             console.log(err);
                         })
                         .on("start", cmdLine => {
                             console.log("Spawned FFmpeg with command: " + cmdLine);
-                            progressWindow.send("launch-second-pass");
+                            ipcRenderer.send("launch-second-pass");
                         })
                         .on("codecData", codecData => {
-                            progressWindow.webContents.send(
+                            ipcRenderer.send(
                                 "update-duration",
                                 codecData.duration
                             );
                         })
                         .on("progress", progress => {
                             //console.log(progress);
-                            if (progressWindow != null) {
-                                
-                                progressWindow.webContents.send(
-                                    "update-timemark",
-                                    progress.timemark
-                                );
-                                progressWindow.webContents.send(
-                                    "update-percent",
-                                    progress.percent
-                                );
-                            }
-                        })
+                            ipcRenderer.send(
+                                "update-progress",
+                                {
+                                    timemark: progress.timemark,
+                                    percent: progress.percent
+                                }
+                            );
+                        }) 
                         .on("end", () => {
-                            if (progressWindow) {
-                                progressWindow.close();
-                            }
-                            
-                            mainWindow.webContents.send("enc-term");
+                            ipcRenderer.send("enc-terminated");
                         })
-                        .run();                    
+                        .run();
                 });
         }
     });
