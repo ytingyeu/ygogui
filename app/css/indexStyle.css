@@ -3,16 +3,10 @@ body {
     padding: 20px 35px;
 }
 
-
-form {
-    width: 550px;
+.header {
+    text-align: center;
+    margin-bottom: 1.5em; 
 }
-
-/*
-.path-selector{
-    margin-bottom: 1em;
-}
-*/
 
 /*
 [type='checkbox'], [type='radio'] {

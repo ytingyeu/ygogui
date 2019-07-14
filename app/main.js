@@ -19,9 +19,9 @@ function initWindows() {
     // Create the browser window.
     mainWindow = new BrowserWindow({ 
         width: 660,
-        height: 560,
+        height: 580,
         webPreferences: {
-            preload: path.join(__dirname, 'preload.js'),
+            //preload: path.join(__dirname, 'preload.js'),
             nodeIntegration: true
         }
     });
@@ -119,7 +119,8 @@ app.on("activate", function() {
 
 
 // get the path of input/output from mainWindow
-ipcMain.on('submit-form', (event, encInfo) => {    
+ipcMain.on('submit-form', (event, encInfo) => {
+    //console.log(encInfo);
     mainWindow.webContents.send('prepare-job', encInfo);
 });
 
@@ -195,7 +196,7 @@ function launchEncoding() {
     progressWindow.setClosable(false);
     progressWindow.loadFile("./app/html/showProgress.html");
 
-    // macOS DOES NOT support win.setMenu()    
+    // macOS does NOT support win.setMenu()    
     if (process.platform === 'linux' || process.platform === 'win32') {
         progressWindow.setMenuBarVisibility(true);
         let progressMenu = Menu.buildFromTemplate([

@@ -13,30 +13,33 @@
 </head>
 
 <body>
-  <div class="title">
+  <div class="header">
     <h1>H.264? 你在哪一個時代啊?</h1>
-    <!-- All of the Node.js APIs are available in this renderer process. -->
+    <!-- 
     <p>
       We are using Node.js <span id="node-version"></span>,
       Chromium <span id="chrome-version"></span>,
       and Electron <span id="electron-version"></span>.   
     </p>
+    -->
+
 </div>
 
-  <br>
   <form class="form-group" id="encoding-form">
 
-    <div class="input-group mb-3">
-        <input type="text" class="form-control" id="input-src" name="src" placeholder="Input Source" required>
-        <div class="input-group-append">
-          <button class="btn btn-outline-secondary" type="button" id="btn-select-src">Browse</button>
-        </div>
-    </div>
-    <div class="input-group mb-3">
-        <input type="text" class="form-control" id="input-des" name="des" placeholder="Output Destination" required>
-        <div class="input-group-append">
-          <button class="btn btn-outline-secondary" type="button" id="btn-select-des">Browse</button>
-        </div>
+    <div id="path-selector">
+      <div class="input-group mb-3">
+          <input type="text" class="form-control" id="input-src" name="src" placeholder="Input Source" required>
+          <div class="input-group-append">
+            <button class="btn btn-outline-secondary" type="button" id="btn-select-src">Browse</button>
+          </div>
+      </div>
+      <div class="input-group mb-3">
+          <input type="text" class="form-control" id="input-des" name="des" placeholder="Output Destination" required>
+          <div class="input-group-append">
+            <button class="btn btn-outline-secondary" type="button" id="btn-select-des">Browse</button>
+          </div>
+      </div>
     </div>
 
     <div class="input-group d-flex my-4 speed-container">        
@@ -66,6 +69,18 @@
         </label>
     </div>
     <br>
+
+    <div class="input-group mb-3">
+        <div class="input-group-prepend">
+          <label class="input-group-text" for="select-after-encoding">轉檔結束後</label>
+        </div>
+        <select class="custom-select" id="select-after-encoding" name="after-encoding">
+          <option value="nothing" selected="selected">什麼都不做</option>
+          <option value="sleep">休眠</option>
+          <option value="shutdown">關機</option>
+        </select>
+    </div>
+
     <button class="btn btn-primary" type="submit" id="btn-encode">Encode</button>
 
   </form>

@@ -21,6 +21,7 @@ const inputs = {
     deinterlace: form.querySelector('input[name="deinterlace"]'),
     denoise: form.querySelector('input[name="denoise"]'),
     preview: form.querySelector('input[name="preview"]'),
+    afterEncoding: form.querySelector('select[name="after-encoding"]')
 };
 
 
@@ -100,7 +101,8 @@ form.addEventListener('submit', (event) => {
         cpuUsed: inputs.cpuUsed.value,
         deinterlace: inputs.deinterlace.checked,
         denoise: inputs.denoise.checked,
-        preview: inputs.preview.checked
+        preview: inputs.preview.checked,
+        afterEncoding: inputs.afterEncoding.value
     });
 });
 
