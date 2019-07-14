@@ -27,7 +27,7 @@ ipcRenderer.on('update-duration', (event, arg) => {
 refBtnCancel.addEventListener('click', () => {
     if (confirm('Are you sure?')) {
         //refProcessGif.style.display = "0";
-        ipcRenderer.send('enc-cancel');
+        ipcRenderer.send('cancel-clicked');
         remote.getCurrentWindow().close();
     }
 });

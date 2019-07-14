@@ -104,7 +104,7 @@ form.addEventListener('submit', (event) => {
     });
 });
 
-ipcRenderer.on('enc-term', () => {
+ipcRenderer.on('enc-terminated', () => {
     document.getElementById("btn-encode").disabled = false;
 });
 

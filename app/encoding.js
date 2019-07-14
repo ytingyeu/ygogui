@@ -1,238 +1,35 @@
-// Modules to control application life and create native browser window
-const { app, BrowserWindow, ipcMain, Menu, dialog } = require("electron");
-
-//const child_spawn = require("child_process").spawn;
-
-// Modules for ffmpeg control
 const ffmpeg = require("fluent-ffmpeg");
-const path = require("path");
 const math = require("mathjs");
-
-// since external exe file is called
-// g_devMode must be set to true to develope
-// while false for building
-const g_devMode = true;
-const g_devTool = true;
-
-// Keep a global reference of the window object, if you don't, the window will
-// be closed automatically when the JavaScript object is garbage collected.
-let mainWindow;
-let progressWindow;
-let infoWindow;
-
-// Winodws init
-function initWindows() {
-    // Create the browser window.
-    mainWindow = new BrowserWindow({ 
-        width: 700,
-        height: 550,
-        webPreferences: {
-            preload: path.join(__dirname, 'preload.js'),
-            nodeIntegration: true
-        }
-    });
-
-    // and load the index.html of the app.
-    mainWindow.loadFile("./app/html/index.html");
-
-    // create menu
-    var menu = Menu.buildFromTemplate([
-        {
-            label: "Menu",
-            submenu: [
-                {
-                    label: "About",
-                    click() {
-                        displayAppInfo();
-                    }
-                },
-                {
-                    label: "Exit",
-                    click() {
-                        app.quit();
-                    }
-                }
-            ]
-        }
-    ]);
-    Menu.setApplicationMenu(menu);
-
-    // Open the DevTools.
-    if (g_devTool) {
-        mainWindow.webContents.openDevTools({ mode: "bottom" });
-    }
-
-    // Emitted when the window is closed.
-    mainWindow.on("closed", function() {
-        // Dereference the window object, usually you would store windows
-        // in an array if your app supports multi windows, this is the time
-        // when you should delete the corresponding element.
-        if (progressWindow) {
-            progressWindow.close();
-        }
-
-        if (infoWindow) {
-            infoWindow.close();
-        }
-
-        mainWindow = null;
-    });
-}
+const path = require("path");
 
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
-app.on("ready", () => {
-    initWindows();
-});
+let newJob;
+//let progressWindow;
 
-// Quit when all windows are closed.
-app.on("window-all-closed", function() {
-    // On macOS it is common for applications and their menu bar
-    // to stay active until the user quits explicitly with Cmd + Q
-    if (process.platform !== "darwin") {
-        app.quit();
-    }
-});
+ipcRenderer.on('prepare-job', (event, encInfo, ffmpeg_bin) => {
+    console.log(encInfo);
 
-app.on("activate", function() {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
-    if (mainWindow === null) {
-        initWindows();
-    }
-});
+    ffmpeg.setFfmpegPath(path.join(ffmpeg_bin, "ffmpeg.exe"));
+    ffmpeg.setFfprobePath(path.join(ffmpeg_bin, "ffprobe.exe"));
 
+    if (encInfo.preview) {
+        newJob = createFfmpegJobPreview(encInfo);
 
-// get the path of input/output from mainWindow
-// and execute ffmepg to encode
-ipcMain.on("submit-form", (event, encInfo) => {        
-    let ffmpeg_bin;
-    //let newJob;
-
-    if (g_devMode) {
-        ffmpeg_bin = path.join(__dirname, "..", "tools");
     } else {
-        ffmpeg_bin = path.join(__dirname, "..", "..", "tools");
+        newJob = createFfmpegJob(encInfo);
     }
 
-    mainWindow.webContents.send("prepare-job", encInfo, ffmpeg_bin);
+    ipcRenderer.send('job-ready');
 });
 
-ipcMain.on('job-ready', () => {    
-    launchEncoding();
+ipcRenderer.on('run-job', (event, windowRef) => {
+    //progressWindow = windowRef;
+    newJob.run();
 });
 
-ipcMain.on('cancel-clicked', () => {
-    //interruptEnc(newJob);
-    mainWindow.send('interrupt-encoding');
-});
-
-ipcMain.on('enc-interrupted', () => {
-    mainWindow.send('enc-terminated');
-});
-
-
-
-
-/* Interrupt an encoding process */
-function interruptEnc(ffmpegProc) {
-    if (ffmpegProc != null) {
-        ffmpegProc.kill("SIGTERM");
-    }
-
-    progressWindow = null;
-    mainWindow.webContents.send("enc-term");
-}
-
-/* Dispaly application infomation */
-function displayAppInfo() {
-    infoWindow = new BrowserWindow({ 
-        width: 450, 
-        height: 210, 
-        parent: mainWindow, 
-        modal: true, 
-        show: false,
-        webPreferences: {
-            nodeIntegration: true
-        } 
-    });
-    infoWindow.setMenuBarVisibility(false);
-    infoWindow.setMinimizable(false);
-    infoWindow.setMaximizable(false);
-    infoWindow.loadFile("./app/html/info.html");
-
-    infoWindow.webContents.on("did-finish-load", () => {
-        infoWindow.show();
-        infoWindow.webContents.send("app-version", app.getVersion());
-    });
-
-    infoWindow.on("closed", function() {
-        infoWindow = null;
-    });
-}
-
-/*Launch an pending encoding job */
-function launchEncoding() {
-
-    //console.log(newJob);
-
-    /* create progress window */
-    progressWindow = new BrowserWindow({ 
-        width: 340, 
-        height: 300, 
-        parent: mainWindow, 
-        modal: true, 
-        //show: false,
-        webPreferences: {
-            nodeIntegration: true
-        }
-    });
-    progressWindow.setMenuBarVisibility(false);
-    //progressWindow.setMinimizable(false);
-    progressWindow.setMaximizable(false);
-    progressWindow.loadFile("./app/html/showProgress.html");
-
-    /* event showProgress window closed handler */
-    progressWindow.on("closed", function() {
-        //interruptEnc(newJob);
-        mainWindow.send("interrupt-encoding");
-        progressWindow = null;
-    });    
-
-    /* loading finished, do execute ffmpeg */
-    progressWindow.webContents.on("did-finish-load", () => {
-        if (g_devTool) {
-            progressWindow.webContents.openDevTools({ mode: "bottom" });
-        }
-
-        //progressWindow.show();        
-
-        try {
-            //newJob.run();
-            mainWindow.webContents.send("run-job", () => {                
-            });
-            
-        } 
-        catch(err) {
-            dialog.showErrorBox("無法開始任務", "請檢查輸入路徑與檔案格式");
-            console.log(err);
-            progressWindow.close();
-            mainWindow.webContents.send("enc-terminated");
-        }   
-    });
-}
-
-ipcMain.on("update-progress", (event, data) => {
-    progressWindow.webContents.send("update-timemark", data.timemark);
-    progressWindow.webContents.send("update-percent", data.percent);
-});
-
-ipcMain.on("update-duration", (event, duration) => {
-    progressWindow.webContents.send("update-duration", duration);
-});
-
+ipcRenderer.on('interrupt-encoding', () => {
+    interruptEnc();
+})
 
 function createFfmpegJobPreview(encInfo) {
     let newJob = ffmpeg(encInfo.src).output(encInfo.des);
@@ -271,33 +68,29 @@ function createFfmpegJobPreview(encInfo) {
                 })
                 .on("start", cmdLine => {
                     console.log("Spawned FFmpeg with command: " + cmdLine);
-                    progressWindow.send("launch-first-pass");
+                    ipcRenderer.send("launch-first-pass");
                 })
                 .on("codecData", codecData => {
-                    progressWindow.webContents.send(
+                    ipcRenderer.send(
                         "update-duration",
                         codecData.duration
                     );
                 })
                 .on("progress", progress => {
-                    console.log(progress);
-                    if (progressWindow != null) {
                         
-                        progressWindow.webContents.send(
-                            "update-timemark",
-                            progress.timemark
+                        ipcRenderer.send(
+                            "update-progress",
+                            {
+                                timemark: progress.timemark,
+                                percent: progress.percent
+                            }
                         );
-                        progressWindow.webContents.send(
-                            "update-percent",
-                            progress.percent
-                        );
-                    }
                 })                
                 .on("end", () => {
-                    if (progressWindow) {
-                        progressWindow.close();
-                    }                    
-                    mainWindow.webContents.send("enc-term");
+                    // if (progressWindow) {
+                    //     progressWindow.close();
+                    // }                    
+                    //mainWindow.webContents.send("enc-term");
                 });
         }
     });
@@ -389,14 +182,7 @@ function createFfmpegJob(encInfo) {
                      * copy&paste duped code is used here (the two listener below) 
                      * or the main process cannot interrput it.
                      */
-                    progressWindow.on("closed", function() {
-                        interruptEnc(passTwoJob);
-                        progressWindow = null;
-                    });
-                    ipcMain.on("enc-cancel", (event) => {
-                        interruptEnc(passTwoJob);
-                    });
-                    
+                   
                     ffmpegOpt = [
                         "-c:v libvpx-vp9",
                         "-b:v 0",
@@ -474,4 +260,15 @@ function createFfmpegJob(encInfo) {
 
     return newJob;
 
+}
+
+
+/* Interrupt an encoding process */
+function interruptEnc() {
+    if (newJob != null) {
+        newJob.kill("SIGTERM");
+    }
+
+    //progressWindow = null;
+    ipcRenderer.send("enc-interrupted");
 }
