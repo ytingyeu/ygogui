@@ -1,6 +1,9 @@
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, ipcMain, Menu, dialog } = require("electron");
+const electron = require('electron');
+const { app, BrowserWindow, ipcMain, Menu, dialog } = electron;
+
 const path = require("path");
+const shutdown = require('electron-shutdown-command');
 
 // since external exe file is called
 // g_devMode must be set to true to develope
@@ -20,6 +23,7 @@ function initWindows() {
     mainWindow = new BrowserWindow({ 
         width: 660,
         height: 580,
+        show: false,
         webPreferences: {
             //preload: path.join(__dirname, 'preload.js'),
             nodeIntegration: true
@@ -29,34 +33,8 @@ function initWindows() {
     // and load the index.html of the app.
     mainWindow.loadFile("./app/html/index.html");
 
-    // create menu
-    let mainMenu = Menu.buildFromTemplate([
-        {
-            label: "Menu",
-            submenu: [
-                {
-                    label: "About",
-                    click() {
-                        displayAppInfo();
-                    }
-                },
-                {
-                    label: "Open DevTools",
-                    click() {                        
-                        mainWindow.webContents.openDevTools({ mode: "undocked"});
-                    }
-                },
-                {
-                    label: "Exit",
-                    click() {
-                        app.quit();
-                    }
-                }
-            ]
-        }
-    ]);
-
-    Menu.setApplicationMenu(mainMenu);
+    // Windows going to shutdown
+    mainWindow.on('session-end', () => { mainWindow.close(); });    
 
     // Open the DevTools.
     if (g_devTool) {
@@ -65,6 +43,9 @@ function initWindows() {
 
     // after the main page is loaded, set ffmpeg path
     mainWindow.webContents.on('did-finish-load', () => {
+
+        mainWindow.show();
+        
         let ffmpeg_bin;
 
         if (g_devMode) {
@@ -97,7 +78,41 @@ function initWindows() {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on("ready", () => {
-    initWindows();
+
+    // create menu
+    let mainMenu = Menu.buildFromTemplate([
+        {
+            label: "Menu",
+            submenu: [
+                {
+                    label: "About",
+                    click() {
+                        displayAppInfo();
+                    }
+                },
+                {
+                    label: "Open DevTools",
+                    click() {                        
+                        mainWindow.webContents.openDevTools({ mode: "undocked"});
+                    }
+                },
+                {
+                    label: "Exit",
+                    click() {
+                        app.quit();
+                    }
+                }
+            ]
+        }
+    ]);
+
+    Menu.setApplicationMenu(mainMenu);
+
+    initWindows();    
+
+    // linux, macOS going to shutdown
+    // for windows, see mainWindow 'session-end' event
+    electron.powerMonitor.on('shutdown', () => { mainWindow.close(); });
 });
 
 // Quit when all windows are closed.
@@ -116,6 +131,7 @@ app.on("activate", function() {
         initWindows();
     }
 });
+
 
 
 // get the path of input/output from mainWindow
@@ -137,15 +153,38 @@ ipcMain.on('launch-second-pass', () => {
 });
 
 ipcMain.on('cancel-clicked', () => {
+    if (progressWindow) {
+        progressWindow.setClosable(true);
+        progressWindow.close();
+    }
     mainWindow.send('interrupt-encoding');
 });
 
-ipcMain.on('enc-terminated', () => {
+ipcMain.on('enc-end', (event, afterEncoding) => {
+    
     if (progressWindow) {
         progressWindow.setClosable(true);
         progressWindow.close();
     }
     mainWindow.send('enable-btn-encode');
+    
+    // action after encoding
+    switch (afterEncoding) {
+        case 'nothing':            
+            break;
+
+        case 'sleep':
+            if (process.platform === 'win32') { shutdown.hibernate(); }
+            else if (process.platform === 'darwin') { shutdown.sleep(); }
+            break;
+
+        case 'shutdown':
+            shutdown.shutdown();
+            break;
+
+        default:
+            throw new Error('unknown action option');
+    }
 });
 
 
@@ -185,7 +224,7 @@ function launchEncoding() {
         height: 300, 
         parent: mainWindow, 
         modal: true, 
-        //show: false,
+        show: false,
         webPreferences: {
             nodeIntegration: true
         }
@@ -223,6 +262,8 @@ function launchEncoding() {
 
     /* loading finished, execute ffmpeg and handle progress info */
     progressWindow.webContents.on("did-finish-load", () => {
+        progressWindow.show();
+
         if (g_devTool) {
             progressWindow.webContents.openDevTools({ mode: "bottom" });
         }

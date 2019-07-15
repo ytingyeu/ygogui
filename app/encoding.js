@@ -2,10 +2,10 @@ const ffmpeg = require("fluent-ffmpeg");
 const math = require("mathjs");
 const path = require("path");
 
-let newJob;
-let passTwoJob;
+let passOne;
+let passTwo;
 
-ipcRenderer.on('set-env', (evnet, ffmpeg_bin) => {
+ipcRenderer.on('set-env', (event, ffmpeg_bin) => {
     ffmpeg.setFfmpegPath(path.join(ffmpeg_bin, "ffmpeg.exe"));
     ffmpeg.setFfprobePath(path.join(ffmpeg_bin, "ffprobe.exe"));    
     ipcRenderer.send('env-set-ready');
@@ -13,41 +13,42 @@ ipcRenderer.on('set-env', (evnet, ffmpeg_bin) => {
 
 ipcRenderer.on('prepare-job', (event, encInfo) => {
 
-    newJob = null;
-    passTwoJob = null;
+    passOne = null;
+    passTwo = null;
 
     if (encInfo.preview) {
-        newJob = createFfmpegJobPreview(encInfo);
+        passOne = createPreviewJob(encInfo);
 
     } else {
-        newJob = createFfmpegJob(encInfo);
+        passOne = createNormalJob(encInfo);
     }
 
     ipcRenderer.send('job-ready');
 });
 
 ipcRenderer.on('run-job', () => {
-    newJob.run();
+    passOne.run();
 });
 
 ipcRenderer.on('interrupt-encoding', () => {
-    if (passTwoJob != null) {
-        passTwoJob.kill("SIGTERM")
+    if (passTwo != null) {
+        passTwo.kill("SIGTERM")
     }
 
-    if (newJob != null) {
-        newJob.kill("SIGTERM");
+    if (passOne != null) {
+        passOne.kill("SIGTERM");
     }
 
-    ipcRenderer.send("enc-terminated");
+    document.getElementById("btn-encode").disabled = false;
+    //ipcRenderer.send("enc-terminated");
 })
 
-function createFfmpegJobPreview(encInfo) {
-    let newJob = ffmpeg(encInfo.src).output(encInfo.des);
+function createPreviewJob(encInfo) {
+    let passOne = ffmpeg(encInfo.src).output(encInfo.des);
     let ffmpegOpt;
     let in_fps;
 
-    newJob.ffprobe((err, data) => {
+    passOne.ffprobe((err, data) => {
         if (err) {
             console.log(err);
         } else {
@@ -72,7 +73,7 @@ function createFfmpegJobPreview(encInfo) {
                 "-cpu-used 6"
             ];
 
-            newJob                
+            passOne                
                 .outputOptions(ffmpegOpt)
                 .on("error", (err) => {
                     console.log(err);
@@ -97,19 +98,19 @@ function createFfmpegJobPreview(encInfo) {
                         );
                 })
                 .on("end", () => {                
-                    ipcRenderer.send("enc-terminated");
+                    ipcRenderer.send("enc-end", encInfo.afterEncoding);
                 });
         }
     });
 
-    return newJob;
+    return passOne;
 }
 
 
 
-function createFfmpegJob(encInfo) {
+function createNormalJob(encInfo) {
 
-    let newJob = ffmpeg(encInfo.src)
+    let passOne = ffmpeg(encInfo.src)
                     .addOption('-f', 'null')
                     .output('/dev/null');
                     
@@ -117,7 +118,7 @@ function createFfmpegJob(encInfo) {
     let in_fps;
     console.log(encInfo.des);
 
-    newJob.ffprobe((err, data) => {
+    passOne.ffprobe((err, data) => {
         if (err) {
             console.error(err);
         } else {
@@ -145,7 +146,7 @@ function createFfmpegJob(encInfo) {
                 "-passlogfile " + "passlog"
             ];
 
-            newJob                
+            passOne                
                 .outputOptions(ffmpegOpt)
                 .on("error", (err) => {
                     console.log(err);
@@ -174,7 +175,7 @@ function createFfmpegJob(encInfo) {
                     console.log("Pass 2");
                     /* Pass 2 */
                     
-                    passTwoJob = ffmpeg(encInfo.src).output(encInfo.des);
+                    passTwo = ffmpeg(encInfo.src).output(encInfo.des);
                     
                     /**
                      * TODO: Need refactoring
@@ -220,10 +221,9 @@ function createFfmpegJob(encInfo) {
                         ffmpegOpt.push("-vf hqdn3d");
                     }
 
-                    passTwoJob
+                    passTwo
                         .outputOptions(ffmpegOpt)
                         .on("error", err => {
-                            //dialog.showErrorBox("Error", err.message);                            
                             console.log(err);
                         })
                         .on("start", cmdLine => {
@@ -247,13 +247,13 @@ function createFfmpegJob(encInfo) {
                             );
                         }) 
                         .on("end", () => {
-                            ipcRenderer.send("enc-terminated");
+                            ipcRenderer.send("enc-end", encInfo.afterEncoding);
                         })
                         .run();
                 });
         }
     });
 
-    return newJob;
+    return passOne;
 
 }
