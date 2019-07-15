@@ -1,6 +1,6 @@
 {
   "name": "ygogui",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "A developing GUI for VP9/Opus encoder",
   "repository": "https://github.com/ytingyeu/ygogui",
   "main": "./app/main.js",
@@ -39,6 +39,7 @@
     "electron": "^5.0.6"
   },
   "dependencies": {
+    "electron-shutdown-command": "0.0.8",
     "fluent-ffmpeg": "^2.1.2",
     "mathjs": "^6.0.2"
   }
