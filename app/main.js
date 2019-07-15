@@ -84,17 +84,17 @@ app.on("ready", () => {
             label: "Menu",
             submenu: [
                 {
-                    label: "About",
-                    click() {
-                        displayAppInfo();
-                    }
-                },
-                {
                     label: "Open DevTools",
                     click() {
                         mainWindow.webContents.openDevTools({
                             mode: "undocked"
                         });
+                    }
+                },
+                {
+                    label: "About",
+                    click() {
+                        displayAppInfo();
                     }
                 },
                 {
