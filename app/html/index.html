@@ -4,8 +4,8 @@
 <head>
   <meta charset="UTF-8">
 
-  <script src="../js/jquery-3.3.1.slim.min.js"></script>
-  <script src="../js/popper.min.js"></script>  
+  <script src="../third_party/jquery-3.3.1.slim.min.js"></script>
+  <script src="../third_party/popper.min.js"></script>  
   <link rel="stylesheet" type="text/css" href="../css/bootstrap.min.css">
   <link rel="stylesheet" type="text/css" href="../css/indexStyle.css">
   
@@ -13,33 +13,38 @@
 </head>
 
 <body>
-  <h1>H.264? 你在哪一個時代啊?</h1>
-  <!-- All of the Node.js APIs are available in this renderer process. -->
-  <p>
-    We are using Node.js <span id="node-version"></span>,
-    Chromium <span id="chrome-version"></span>,
-    and Electron <span id="electron-version"></span>.   
-  </p>
+  <div class="header">
+    <h1>H.264? 你在哪一個時代啊?</h1>
+    <!-- 
+    <p>
+      We are using Node.js <span id="node-version"></span>,
+      Chromium <span id="chrome-version"></span>,
+      and Electron <span id="electron-version"></span>.   
+    </p>
+    -->
 
-  <br>
+</div>
+
   <form class="form-group" id="encoding-form">
 
-    <div class="input-group mb-3">
-        <input type="text" class="form-control" id="input-src" name="src" placeholder="Input Source" required>
-        <div class="input-group-append">
-          <button class="btn btn-outline-secondary" type="button" id="btn-select-src">Browse</button>
-        </div>
-    </div>
-    <div class="input-group mb-3">
-        <input type="text" class="form-control" id="input-des" name="des" placeholder="Output Destination" required>
-        <div class="input-group-append">
-          <button class="btn btn-outline-secondary" type="button" id="btn-select-des">Browse</button>
-        </div>
+    <div id="path-selector">
+      <div class="input-group mb-3">
+          <input type="text" class="form-control" id="input-src" name="src" placeholder="Input Source" required>
+          <div class="input-group-append">
+            <button class="btn btn-outline-secondary" type="button" id="btn-select-src">Browse</button>
+          </div>
+      </div>
+      <div class="input-group mb-3">
+          <input type="text" class="form-control" id="input-des" name="des" placeholder="Output Destination" required>
+          <div class="input-group-append">
+            <button class="btn btn-outline-secondary" type="button" id="btn-select-des">Browse</button>
+          </div>
+      </div>
     </div>
 
     <div class="input-group d-flex my-4 speed-container">        
         <label class="font-weight-bold indigo-text mr-2 mt-1 speed-text" for="cpu-used">最佳品質/最慢</label>
-        <div><input type="range" class="custom-range" id="cpu-used" min="0" max="2" value="0" name="cpu-used"></div>
+        <div><input type="range" class="custom-range" id="cpu-used" min="0" max="2" value="1" name="cpu-used"></div>
         <label class="font-weight-bold indigo-text ml-2 mt-1 speed-text" for="cpu-used">中等品質/稍快</label>
     </div>
 
@@ -64,13 +69,27 @@
         </label>
     </div>
     <br>
+
+    <div class="input-group mb-3">
+        <div class="input-group-prepend">
+          <label class="input-group-text" for="select-after-encoding">轉檔結束後</label>
+        </div>
+        <select class="custom-select" id="select-after-encoding" name="after-encoding">
+          <option value="nothing" selected="selected">什麼都不做</option>
+          <option value="sleep">休眠(Windows) / 睡眠(macOS)</option>
+          <option value="shutdown">關機</option>
+        </select>
+    </div>
+
     <button class="btn btn-primary" type="submit" id="btn-encode">Encode</button>
 
   </form>
 
 
   <!-- You can also require other files to run in this process -->
-  <script src="../renderer.js"></script>
+  <script src="../index.js"></script>
+  <script src="../encoding.js"></script>
+
 
 </body>
 

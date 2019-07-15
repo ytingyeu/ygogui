@@ -57,10 +57,7 @@ Ref: [VP9 Encoding Guide](http://wiki.webmproject.org/ffmpeg/vp9-encoding-guide)
 
 
 ## 注意事項
-為了支援只有 32-bit 的官方版 `AviSynth`，本專案所包含的 `ffmpeg` 也是使用 32-bit 版本。
-
-另外由於不少沒有持續更新的 codec，如 [Debugmode FrameServer](http://www.debugmode.com/frameserver/) 自定義的 DFSC，
-並不支援 64-bit，因此作者在測試後決定本專案不會發布 64-bit 版本
+為了支援只有 32-bit 的官方版 `AviSynth`，本專案本身及所包含的 `ffmpeg` 亦為 32-bit 版本。
 
 
 ## License
