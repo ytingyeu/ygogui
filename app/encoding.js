@@ -1,38 +1,37 @@
 const ffmpeg = require("fluent-ffmpeg");
 const math = require("mathjs");
 const path = require("path");
+const child_process = require("child_process");
 
 let passOne;
 let passTwo;
 
-ipcRenderer.on('set-env', (event, ffmpeg_bin) => {
+ipcRenderer.on("set-env", (event, ffmpeg_bin) => {
     ffmpeg.setFfmpegPath(path.join(ffmpeg_bin, "ffmpeg.exe"));
-    ffmpeg.setFfprobePath(path.join(ffmpeg_bin, "ffprobe.exe"));    
-    ipcRenderer.send('env-set-ready');
-})
+    ffmpeg.setFfprobePath(path.join(ffmpeg_bin, "ffprobe.exe"));
+    ipcRenderer.send("env-set-ready");
+});
 
-ipcRenderer.on('prepare-job', (event, encInfo) => {
-
+ipcRenderer.on("prepare-job", (event, encInfo) => {
     passOne = null;
     passTwo = null;
 
     if (encInfo.preview) {
         passOne = createPreviewJob(encInfo);
-
     } else {
         passOne = createNormalJob(encInfo);
     }
 
-    ipcRenderer.send('job-ready');
+    ipcRenderer.send("job-ready");
 });
 
-ipcRenderer.on('run-job', () => {
+ipcRenderer.on("run-job", () => {
     passOne.run();
 });
 
-ipcRenderer.on('interrupt-encoding', () => {
+ipcRenderer.on("interrupt-encoding", () => {
     if (passTwo != null) {
-        passTwo.kill("SIGTERM")
+        passTwo.kill("SIGTERM");
     }
 
     if (passOne != null) {
@@ -41,7 +40,7 @@ ipcRenderer.on('interrupt-encoding', () => {
 
     document.getElementById("btn-encode").disabled = false;
     //ipcRenderer.send("enc-terminated");
-})
+});
 
 function createPreviewJob(encInfo) {
     let passOne = ffmpeg(encInfo.src).output(encInfo.des);
@@ -52,7 +51,7 @@ function createPreviewJob(encInfo) {
         if (err) {
             console.log(err);
         } else {
-            in_fps = math.ceil(eval(data.streams[0].r_frame_rate));            
+            in_fps = math.ceil(eval(data.streams[0].r_frame_rate));
 
             console.log("Preview");
 
@@ -73,9 +72,9 @@ function createPreviewJob(encInfo) {
                 "-cpu-used 6"
             ];
 
-            passOne                
+            passOne
                 .outputOptions(ffmpegOpt)
-                .on("error", (err) => {
+                .on("error", err => {
                     console.log(err);
                 })
                 .on("start", cmdLine => {
@@ -83,21 +82,15 @@ function createPreviewJob(encInfo) {
                     ipcRenderer.send("launch-first-pass");
                 })
                 .on("codecData", codecData => {
-                    ipcRenderer.send(
-                        "update-duration",
-                        codecData.duration
-                    );
+                    ipcRenderer.send("update-duration", codecData.duration);
                 })
                 .on("progress", progress => {
-                        ipcRenderer.send(
-                            "update-progress",
-                            {
-                                timemark: progress.timemark,
-                                percent: progress.percent
-                            }
-                        );
+                    ipcRenderer.send("update-progress", {
+                        timemark: progress.timemark,
+                        percent: progress.percent
+                    });
                 })
-                .on("end", () => {                
+                .on("end", () => {
                     ipcRenderer.send("enc-end", encInfo.afterEncoding);
                 });
         }
@@ -106,14 +99,11 @@ function createPreviewJob(encInfo) {
     return passOne;
 }
 
-
-
 function createNormalJob(encInfo) {
-
     let passOne = ffmpeg(encInfo.src)
-                    .addOption('-f', 'null')
-                    .output('/dev/null');
-                    
+        .addOption("-f", "null")
+        .output("/dev/null");
+
     let ffmpegOpt;
     let in_fps;
     console.log(encInfo.des);
@@ -122,10 +112,10 @@ function createNormalJob(encInfo) {
         if (err) {
             console.error(err);
         } else {
-            in_fps = math.ceil(eval(data.streams[0].r_frame_rate));            
+            in_fps = math.ceil(eval(data.streams[0].r_frame_rate));
 
             console.log("Pass 1");
-             /* Pass 1 */
+            /* Pass 1 */
             ffmpegOpt = [
                 "-c:v libvpx-vp9",
                 "-b:v 0",
@@ -146,9 +136,9 @@ function createNormalJob(encInfo) {
                 "-passlogfile " + "passlog"
             ];
 
-            passOne                
+            passOne
                 .outputOptions(ffmpegOpt)
-                .on("error", (err) => {
+                .on("error", err => {
                     console.log(err);
                 })
                 .on("start", cmdLine => {
@@ -156,39 +146,33 @@ function createNormalJob(encInfo) {
                     ipcRenderer.send("launch-first-pass");
                 })
                 .on("codecData", codecData => {
-                    ipcRenderer.send(
-                        "update-duration",
-                        codecData.duration
-                    );
+                    ipcRenderer.send("update-duration", codecData.duration);
                 })
                 .on("progress", progress => {
                     //console.log(progress);
-                    ipcRenderer.send(
-                        "update-progress",
-                        {
-                            timemark: progress.timemark,
-                            percent: progress.percent
-                        }
-                    );
-                })                
+                    ipcRenderer.send("update-progress", {
+                        timemark: progress.timemark,
+                        percent: progress.percent
+                    });
+                })
                 .on("end", () => {
                     console.log("Pass 2");
                     /* Pass 2 */
-                    
+
                     passTwo = ffmpeg(encInfo.src).output(encInfo.des);
-                    
+
                     /**
                      * TODO: Need refactoring
-                     * 
+                     *
                      * fluent-ffmpeg doesn't support two-pass very well.
-                     * I have to do the 2nd pass with callback and fetch 
-                     * the other child_process. 
-                     * 
-                     * To interrupt the 2nd child_process, 
-                     * copy&paste duped code is used here (the two listener below) 
+                     * I have to do the 2nd pass with callback and fetch
+                     * the other child_process.
+                     *
+                     * To interrupt the 2nd child_process,
+                     * copy&paste duped code is used here (the two listener below)
                      * or the main process cannot interrput it.
                      */
-                   
+
                     ffmpegOpt = [
                         "-c:v libvpx-vp9",
                         "-b:v 0",
@@ -212,7 +196,7 @@ function createNormalJob(encInfo) {
                         "-cpu-used " + encInfo.cpuUsed,
                         "-passlogfile " + "passlog"
                     ];
-        
+
                     if (encInfo.deinterlace && encInfo.denoise) {
                         ffmpegOpt.push("-vf yadif=0:-1:0,bm3d");
                     } else if (encInfo.deinterlace) {
@@ -227,7 +211,9 @@ function createNormalJob(encInfo) {
                             console.log(err);
                         })
                         .on("start", cmdLine => {
-                            console.log("Spawned FFmpeg with command: " + cmdLine);
+                            console.log(
+                                "Spawned FFmpeg with command: " + cmdLine
+                            );
                             ipcRenderer.send("launch-second-pass");
                         })
                         .on("codecData", codecData => {
@@ -238,16 +224,14 @@ function createNormalJob(encInfo) {
                         })
                         .on("progress", progress => {
                             //console.log(progress);
-                            ipcRenderer.send(
-                                "update-progress",
-                                {
-                                    timemark: progress.timemark,
-                                    percent: progress.percent
-                                }
-                            );
-                        }) 
+                            ipcRenderer.send("update-progress", {
+                                timemark: progress.timemark,
+                                percent: progress.percent
+                            });
+                        })
                         .on("end", () => {
                             ipcRenderer.send("enc-end", encInfo.afterEncoding);
+                            child_process.exec("rm passlog-0.log");
                         })
                         .run();
                 });
@@ -255,5 +239,4 @@ function createNormalJob(encInfo) {
     });
 
     return passOne;
-
 }
