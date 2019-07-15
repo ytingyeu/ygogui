@@ -43,7 +43,7 @@ ipcRenderer.on("interrupt-encoding", () => {
 });
 
 function createPreviewJob(encInfo) {
-    let passOne = ffmpeg(encInfo.src).output(encInfo.des);
+    passOne = ffmpeg(encInfo.src).output(encInfo.des);
     let ffmpegOpt;
     let in_fps;
 
@@ -100,7 +100,7 @@ function createPreviewJob(encInfo) {
 }
 
 function createNormalJob(encInfo) {
-    let passOne = ffmpeg(encInfo.src)
+    passOne = ffmpeg(encInfo.src)
         .addOption("-f", "null")
         .output("/dev/null");
 
