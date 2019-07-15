@@ -2,16 +2,16 @@
 // be executed in the renderer process for that window.
 // All of the Node.js APIs are available in this process.
 
-const { ipcRenderer, remote } = require('electron');
+const { ipcRenderer, remote } = require("electron");
 const { dialog } = remote;
-const form = document.getElementById('encoding-form');
+const form = document.getElementById("encoding-form");
 
-const supFileExtension = ['avs', 'avi', 'mp4', 'mkv'];
+const supFileExtension = ["avs", "avi", "mp4", "mkv"];
 
 const btns = {
-    src: document.getElementById('btn-select-src'),
-    des: document.getElementById('btn-select-des'),
-    submit: document.getElementById('btn-encode'),
+    src: document.getElementById("btn-select-src"),
+    des: document.getElementById("btn-select-des"),
+    submit: document.getElementById("btn-encode")
 };
 
 const inputs = {
@@ -24,14 +24,11 @@ const inputs = {
     afterEncoding: form.querySelector('select[name="after-encoding"]')
 };
 
-
 /* get source path */
-btns.src.addEventListener('click', () => {
+btns.src.addEventListener("click", () => {
     const inputPath = dialog.showOpenDialog({
-        properties: ['openFile'],
-        filters: [
-            { name: 'All Supported', extensions: supFileExtension }            
-        ]
+        properties: ["openFile"],
+        filters: [{ name: "All Supported", extensions: supFileExtension }]
     });
     if (inputPath) {
         inputs.src.value = inputPath.toString();
@@ -39,16 +36,16 @@ btns.src.addEventListener('click', () => {
 });
 
 /* get output path and filename */
-btns.des.addEventListener('click', () => {
+btns.des.addEventListener("click", () => {
     const outputPath = dialog.showSaveDialog({
-        filters: [{ name: 'WebM file', extensions: ['webm'] }]
+        filters: [{ name: "WebM file", extensions: ["webm"] }]
     });
     if (outputPath) {
         inputs.des.value = outputPath;
     }
 });
 
-document.getElementById("preview").addEventListener('change', (event) => {
+document.getElementById("preview").addEventListener("change", event => {
     if (event.target.checked) {
         document.getElementById("cpu-used").disabled = true;
     } else {
@@ -58,7 +55,7 @@ document.getElementById("preview").addEventListener('change', (event) => {
 
 /* Get src path by drag & drop */
 (function handleDropFile() {
-    var holder = document.getElementById('input-src');
+    var holder = document.getElementById("input-src");
 
     holder.ondragover = () => {
         return false;
@@ -72,16 +69,15 @@ document.getElementById("preview").addEventListener('change', (event) => {
         return false;
     };
 
-    holder.ondrop = (e) => {
+    holder.ondrop = e => {
         e.preventDefault();
 
         if (e.dataTransfer.files.length == 1) {
             let f = e.dataTransfer.files[0];
-            let fileExtension = f.path.split('.').pop();
-
-            // TO-DO: fix extension validation
+            let fileExtension = f.path.split(".").pop();
+            
             if (supFileExtension.includes(fileExtension)) {
-                let refInputPath = document.getElementById('input-src');
+                let refInputPath = document.getElementById("input-src");
                 refInputPath.innerHTML = f.path;
                 inputs.src.value = f.path;
             }
@@ -92,10 +88,10 @@ document.getElementById("preview").addEventListener('change', (event) => {
 })();
 
 /* Submit form to main process */
-form.addEventListener('submit', (event) => {
+form.addEventListener("submit", event => {
     event.preventDefault();
     document.getElementById("btn-encode").disabled = true;
-    ipcRenderer.send('submit-form', {
+    ipcRenderer.send("submit-form", {
         src: inputs.src.value,
         des: inputs.des.value,
         cpuUsed: inputs.cpuUsed.value,
@@ -106,7 +102,6 @@ form.addEventListener('submit', (event) => {
     });
 });
 
-ipcRenderer.on('enable-btn-encode', () => {
+ipcRenderer.on("enable-btn-encode", () => {
     document.getElementById("btn-encode").disabled = false;
 });
-

@@ -1,9 +1,9 @@
 // Modules to control application life and create native browser window
-const electron = require('electron');
+const electron = require("electron");
 const { app, BrowserWindow, ipcMain, Menu, dialog } = electron;
 
 const path = require("path");
-const shutdown = require('electron-shutdown-command');
+const shutdown = require("electron-shutdown-command");
 
 // since external exe file is called
 // g_devMode must be set to true to develope
@@ -20,7 +20,7 @@ let infoWindow;
 // main winodw init
 function initWindows() {
     // Create the browser window.
-    mainWindow = new BrowserWindow({ 
+    mainWindow = new BrowserWindow({
         width: 660,
         height: 580,
         show: false,
@@ -34,18 +34,19 @@ function initWindows() {
     mainWindow.loadFile("./app/html/index.html");
 
     // Windows going to shutdown
-    mainWindow.on('session-end', () => { mainWindow.close(); });    
+    mainWindow.on("session-end", () => {
+        mainWindow.close();
+    });
 
     // Open the DevTools.
     if (g_devTool) {
-        mainWindow.webContents.openDevTools({ mode: "bottom"});
+        mainWindow.webContents.openDevTools({ mode: "bottom" });
     }
 
     // after the main page is loaded, set ffmpeg path
-    mainWindow.webContents.on('did-finish-load', () => {
-
+    mainWindow.webContents.on("did-finish-load", () => {
         mainWindow.show();
-        
+
         let ffmpeg_bin;
 
         if (g_devMode) {
@@ -53,7 +54,7 @@ function initWindows() {
         } else {
             ffmpeg_bin = path.join(__dirname, "..", "..", "tools");
         }
-        mainWindow.webContents.send('set-env', ffmpeg_bin);
+        mainWindow.webContents.send("set-env", ffmpeg_bin);
     });
 
     // Emitted when the window is closed.
@@ -73,12 +74,10 @@ function initWindows() {
     });
 }
 
-
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on("ready", () => {
-
     // create menu
     let mainMenu = Menu.buildFromTemplate([
         {
@@ -92,8 +91,10 @@ app.on("ready", () => {
                 },
                 {
                     label: "Open DevTools",
-                    click() {                        
-                        mainWindow.webContents.openDevTools({ mode: "undocked"});
+                    click() {
+                        mainWindow.webContents.openDevTools({
+                            mode: "undocked"
+                        });
                     }
                 },
                 {
@@ -108,11 +109,13 @@ app.on("ready", () => {
 
     Menu.setApplicationMenu(mainMenu);
 
-    initWindows();    
+    initWindows();
 
     // linux, macOS going to shutdown
     // for windows, see mainWindow 'session-end' event
-    electron.powerMonitor.on('shutdown', () => { mainWindow.close(); });
+    electron.powerMonitor.on("shutdown", () => {
+        mainWindow.close();
+    });
 });
 
 // Quit when all windows are closed.
@@ -132,73 +135,72 @@ app.on("activate", function() {
     }
 });
 
-
-
 // get the path of input/output from mainWindow
-ipcMain.on('submit-form', (event, encInfo) => {
+ipcMain.on("submit-form", (event, encInfo) => {
     //console.log(encInfo);
-    mainWindow.webContents.send('prepare-job', encInfo);
+    mainWindow.webContents.send("prepare-job", encInfo);
 });
 
-ipcMain.on('job-ready', () => {
+ipcMain.on("job-ready", () => {
     launchEncoding();
 });
 
-ipcMain.on('launch-first-pass', () => {
+ipcMain.on("launch-first-pass", () => {
     progressWindow.send("launch-first-pass");
 });
 
-ipcMain.on('launch-second-pass', () => {
+ipcMain.on("launch-second-pass", () => {
     progressWindow.send("launch-second-pass");
 });
 
-ipcMain.on('cancel-clicked', () => {
+ipcMain.on("cancel-clicked", () => {
     if (progressWindow) {
         progressWindow.setClosable(true);
         progressWindow.close();
     }
-    mainWindow.send('interrupt-encoding');
+    mainWindow.send("interrupt-encoding");
 });
 
-ipcMain.on('enc-end', (event, afterEncoding) => {
-    
+ipcMain.on("enc-end", (event, afterEncoding) => {
     if (progressWindow) {
         progressWindow.setClosable(true);
         progressWindow.close();
     }
-    mainWindow.send('enable-btn-encode');
-    
+    mainWindow.send("enable-btn-encode");
+
     // action after encoding
     switch (afterEncoding) {
-        case 'nothing':            
+        case "nothing":
             break;
 
-        case 'sleep':
-            if (process.platform === 'win32') { shutdown.hibernate(); }
-            else if (process.platform === 'darwin') { shutdown.sleep(); }
+        case "sleep":
+            if (process.platform === "win32") {
+                shutdown.hibernate();
+            } else if (process.platform === "darwin") {
+                shutdown.sleep();
+            }
             break;
 
-        case 'shutdown':
+        case "shutdown":
             shutdown.shutdown();
             break;
 
         default:
-            throw new Error('unknown action option');
+            throw new Error("unknown action option");
     }
 });
 
-
 /* Dispaly application infomation */
 function displayAppInfo() {
-    infoWindow = new BrowserWindow({ 
-        width: 450, 
-        height: 210, 
-        parent: mainWindow, 
-        modal: true, 
+    infoWindow = new BrowserWindow({
+        width: 450,
+        height: 210,
+        parent: mainWindow,
+        modal: true,
         show: false,
         webPreferences: {
             nodeIntegration: true
-        } 
+        }
     });
     infoWindow.setMenuBarVisibility(false);
     infoWindow.setMinimizable(false);
@@ -217,26 +219,25 @@ function displayAppInfo() {
 
 /*Launch an pending encoding job */
 function launchEncoding() {
-
     /* create progress window */
-    progressWindow = new BrowserWindow({ 
-        width: 340, 
-        height: 300, 
-        parent: mainWindow, 
-        modal: true, 
+    progressWindow = new BrowserWindow({
+        width: 340,
+        height: 300,
+        parent: mainWindow,
+        modal: true,
         show: false,
         webPreferences: {
             nodeIntegration: true
         }
     });
-    
+
     progressWindow.setMenuBarVisibility(false);
     progressWindow.setMaximizable(false);
     progressWindow.setClosable(false);
     progressWindow.loadFile("./app/html/showProgress.html");
 
-    // macOS does NOT support win.setMenu()    
-    if (process.platform === 'linux' || process.platform === 'win32') {
+    // macOS does NOT support win.setMenu()
+    if (process.platform === "linux" || process.platform === "win32") {
         progressWindow.setMenuBarVisibility(true);
         let progressMenu = Menu.buildFromTemplate([
             {
@@ -245,20 +246,21 @@ function launchEncoding() {
                     {
                         label: "Open DevTools",
                         click() {
-                            progressWindow.webContents.openDevTools({ mode: "undocked" });
+                            progressWindow.webContents.openDevTools({
+                                mode: "undocked"
+                            });
                         }
-                    },
+                    }
                 ]
             }
         ]);
         progressWindow.setMenu(progressMenu);
     }
-    
 
     /* event showProgress window closed handler */
-    progressWindow.on("closed", function() {        
+    progressWindow.on("closed", function() {
         progressWindow = null;
-    });    
+    });
 
     /* loading finished, execute ffmpeg and handle progress info */
     progressWindow.webContents.on("did-finish-load", () => {
@@ -271,27 +273,26 @@ function launchEncoding() {
         ipcMain.on("update-duration", (event, duration) => {
             if (progressWindow) {
                 progressWindow.webContents.send("update-duration", duration);
-            }            
-        }); 
+            }
+        });
 
         ipcMain.on("update-progress", (event, data) => {
             if (progressWindow) {
-                progressWindow.webContents.send("update-timemark", data.timemark);
+                progressWindow.webContents.send(
+                    "update-timemark",
+                    data.timemark
+                );
                 progressWindow.webContents.send("update-percent", data.percent);
-            }            
+            }
         });
 
         /* Start ffmpeg job */
         try {
-            mainWindow.webContents.send('run-job');            
-        } 
-        catch(err) {
+            mainWindow.webContents.send("run-job");
+        } catch (err) {
             dialog.showErrorBox("Error", err.message);
             progressWindow.close();
             mainWindow.webContents.send("enc-terminated");
         }
     });
 }
-
-
-
