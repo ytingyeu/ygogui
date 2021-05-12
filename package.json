@@ -41,6 +41,6 @@
   "dependencies": {
     "electron-shutdown-command": "0.0.8",
     "fluent-ffmpeg": "^2.1.2",
-    "mathjs": "^6.0.2"
+    "mathjs": "^7.5.1"
   }
 }
