@@ -15,7 +15,15 @@ ipcRenderer.on("launch-second-pass", () => {
 });
 
 ipcRenderer.on("update-timemark", (event, arg) => {
+    //console.log("update-timemark");
     refShowTimemark.innerHTML = arg;
+});
+
+ipcRenderer.on("update-percent", (event, percent) => {
+    //console.log("percent: " + percent);
+    if (percent) {
+        refProgressBar.style.width = percent.toFixed(2) + "%";
+    }
 });
 
 ipcRenderer.on("update-duration", (event, arg) => {
@@ -26,11 +34,5 @@ refBtnCancel.addEventListener("click", () => {
     if (confirm("Are you sure?")) {
         ipcRenderer.send("cancel-clicked");
         remote.getCurrentWindow().close();
-    }
-});
-
-ipcRenderer.on("update-percent", (event, percent) => {
-    if (percent) {
-        refProgressBar.style.width = percent.toFixed(2) + "%";
     }
 });

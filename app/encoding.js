@@ -13,8 +13,8 @@ ipcRenderer.on("set-env", (event, ffmpeg_bin) => {
 });
 
 ipcRenderer.on("prepare-job", (event, encInfo) => {
-    passOne = null;
     passTwo = null;
+    passOne = null;
 
     if (encInfo.preview) {
         passOne = createPreviewJob(encInfo);
@@ -85,6 +85,7 @@ function createPreviewJob(encInfo) {
                     ipcRenderer.send("update-duration", codecData.duration);
                 })
                 .on("progress", progress => {
+                    console.log(progress);
                     ipcRenderer.send("update-progress", {
                         timemark: progress.timemark,
                         percent: progress.percent
@@ -149,7 +150,7 @@ function createNormalJob(encInfo) {
                     ipcRenderer.send("update-duration", codecData.duration);
                 })
                 .on("progress", progress => {
-                    //console.log(progress);
+                    console.log(progress);
                     ipcRenderer.send("update-progress", {
                         timemark: progress.timemark,
                         percent: progress.percent
