@@ -5,12 +5,6 @@ const { app, BrowserWindow, ipcMain, Menu, dialog } = electron;
 const path = require("path");
 const shutdown = require("electron-shutdown-command");
 
-// since external exe file is called
-// g_devMode must be set to true to develope
-// while false for building
-const g_devMode = false;
-const g_devTool = false;
-
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
@@ -38,21 +32,16 @@ function initWindows() {
         mainWindow.close();
     });
 
-    // Open the DevTools.
-    if (g_devTool) {
-        mainWindow.webContents.openDevTools({ mode: "bottom" });
-    }
-
     // after the main page is loaded, set ffmpeg path
     mainWindow.webContents.on("did-finish-load", () => {
         mainWindow.show();
 
         let ffmpeg_bin;
 
-        if (g_devMode) {
-            ffmpeg_bin = path.join(__dirname, "..", "tools");
-        } else {
+        if (app.isPackaged) {
             ffmpeg_bin = path.join(__dirname, "..", "..", "tools");
+        } else {
+            ffmpeg_bin = path.join(__dirname, "..", "tools");
         }
         mainWindow.webContents.send("set-env", ffmpeg_bin);
     });
@@ -190,6 +179,22 @@ ipcMain.on("enc-end", (event, afterEncoding) => {
     }
 });
 
+ipcMain.on("update-duration", (event, duration) => {
+    if (progressWindow) {
+        progressWindow.webContents.send("update-duration", duration);
+    }
+});
+
+ipcMain.on("update-progress", (event, data) => {
+    if (progressWindow) {
+        progressWindow.webContents.send(
+            "update-timemark",
+            data.timemark
+        );
+        progressWindow.webContents.send("update-percent", data.percent);
+    }
+});
+
 /* Dispaly application infomation */
 function displayAppInfo() {
     infoWindow = new BrowserWindow({
@@ -264,27 +269,7 @@ function launchEncoding() {
 
     /* loading finished, execute ffmpeg and handle progress info */
     progressWindow.webContents.on("did-finish-load", () => {
-        progressWindow.show();
-
-        if (g_devTool) {
-            progressWindow.webContents.openDevTools({ mode: "bottom" });
-        }
-
-        ipcMain.on("update-duration", (event, duration) => {
-            if (progressWindow) {
-                progressWindow.webContents.send("update-duration", duration);
-            }
-        });
-
-        ipcMain.on("update-progress", (event, data) => {
-            if (progressWindow) {
-                progressWindow.webContents.send(
-                    "update-timemark",
-                    data.timemark
-                );
-                progressWindow.webContents.send("update-percent", data.percent);
-            }
-        });
+        progressWindow.show();        
 
         /* Start ffmpeg job */
         try {
