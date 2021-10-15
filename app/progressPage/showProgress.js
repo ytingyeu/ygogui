@@ -1,5 +1,5 @@
-const { ipcRenderer, remote } = require("electron");
-
+const electron = require("electron");
+const { ipcRenderer, remote } = electron;
 let refBtnCancel = document.getElementById("btn-cancel");
 let refShowTimemark = document.getElementById("show-timemark");
 let refShowDuration = document.getElementById("show-duration");
@@ -22,15 +22,15 @@ ipcRenderer.on("update-duration", (event, arg) => {
     refShowDuration.innerHTML = arg;
 });
 
+ipcRenderer.on("update-percent", (event, percent) => {
+    if (percent) {
+        refProgressBar.style.width = percent.toFixed(2) + "%";
+    }
+});
+
 refBtnCancel.addEventListener("click", () => {
     if (confirm("Are you sure?")) {
         ipcRenderer.send("cancel-clicked");
         remote.getCurrentWindow().close();
-    }
-});
-
-ipcRenderer.on("update-percent", (event, percent) => {
-    if (percent) {
-        refProgressBar.style.width = percent.toFixed(2) + "%";
     }
 });
