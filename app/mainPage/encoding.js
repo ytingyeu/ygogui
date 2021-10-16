@@ -6,17 +6,20 @@ const child_process = require("child_process");
 let passOne;
 let passTwo;
 
-ffmpeg.setFfmpegPath(path.join(window.ffmpeg.path, "ffmpeg.exe"));
-ffmpeg.setFfprobePath(path.join(window.ffmpeg.path, "ffprobe.exe"));
+ipcRenderer.on("set-env", (event, ffmpeg_bin) => {
+  ffmpeg.setFfmpegPath(path.join(ffmpeg_bin, "ffmpeg.exe"));
+  ffmpeg.setFfprobePath(path.join(ffmpeg_bin, "ffprobe.exe"));
+  ipcRenderer.send("env-set-ready");
+});
 
-ipcRenderer.on("prepare-job", (event, encInfo, ffmpeg_bin) => {
+ipcRenderer.on("prepare-job", (event, encInfo) => {
   passOne = null;
   passTwo = null;
 
   if (encInfo.preview) {
-    passOne = createPreviewJob(encInfo);
+    createPreviewJob(encInfo);
   } else {
-    passOne = createNormalJob(encInfo);
+    createNormalJob(encInfo);
   }
 
   ipcRenderer.send("job-ready");
@@ -93,7 +96,7 @@ function createPreviewJob(encInfo) {
     }
   });
 
-  return passOne;
+  // return passOne;
 }
 
 function createNormalJob(encInfo) {
@@ -228,5 +231,5 @@ function createNormalJob(encInfo) {
     }
   });
 
-  return passOne;
+  // return passOne;
 }

@@ -19,7 +19,7 @@ function initWindows() {
     height: 580,
     show: false,
     webPreferences: {
-      preload: path.join(__dirname, '/mainPage/preload.js'),
+      // preload: path.join(__dirname, '/mainPage/preload.js'),
       nodeIntegration: true,
     },
   });
@@ -34,6 +34,15 @@ function initWindows() {
 
   // display main page after it is loaded
   mainWindow.webContents.on("did-finish-load", () => {
+    let ffmpeg_bin;
+
+    if (app.isPackaged) {
+      ffmpeg_bin = path.join(__dirname, "..", "..", "tools");
+    } else {
+      ffmpeg_bin = path.join(__dirname, "..", "tools");
+    }
+    mainWindow.webContents.send("set-env", ffmpeg_bin);
+
     mainWindow.show();
   });
 
@@ -117,7 +126,7 @@ app.on("activate", function () {
 
 // get the path of input/output from mainWindow
 ipcMain.on("submit-form", (event, encInfo) => {
-  console.log(encInfo);  
+  console.log(encInfo);
   mainWindow.webContents.send("prepare-job", encInfo);
 });
 
@@ -126,11 +135,11 @@ ipcMain.on("job-ready", () => {
 });
 
 ipcMain.on("launch-first-pass", () => {
-  progressWindow.send("launch-first-pass");
+  progressWindow.webContents.send("launch-first-pass");
 });
 
 ipcMain.on("launch-second-pass", () => {
-  progressWindow.send("launch-second-pass");
+  progressWindow.webContents.send("launch-second-pass");
 });
 
 ipcMain.on("cancel-clicked", () => {
@@ -138,7 +147,7 @@ ipcMain.on("cancel-clicked", () => {
     progressWindow.setClosable(true);
     progressWindow.close();
   }
-  mainWindow.send("interrupt-encoding");
+  mainWindow.webContents.send("interrupt-encoding");
 });
 
 ipcMain.on("enc-end", (event, afterEncoding) => {
@@ -146,7 +155,7 @@ ipcMain.on("enc-end", (event, afterEncoding) => {
     progressWindow.setClosable(true);
     progressWindow.close();
   }
-  mainWindow.send("enable-btn-encode");
+  mainWindow.webContents.send("enable-btn-encode");
 
   // action after encoding
   switch (afterEncoding) {
@@ -227,7 +236,7 @@ function launchEncoding() {
   progressWindow.setMenuBarVisibility(false);
   progressWindow.setMaximizable(false);
   progressWindow.setClosable(false);
-  progressWindow.loadFile("./app/html/showProgress.html");
+  progressWindow.loadFile("./app/progressPage/showProgress.html");
 
   // macOS does NOT support win.setMenu()
   if (process.platform === "linux" || process.platform === "win32") {
