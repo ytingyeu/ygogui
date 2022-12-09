@@ -7,8 +7,8 @@
 
 ## 使用方式
 
-1. 把要轉的檔案(mp4, avi, avs 等)放進 /source
+1. 把要轉的檔案(mp4, avi, avs 等)放進資料夾 source
 
 2. 對著 ygonogui.ps1 按右鍵 -> 以 PowerShell 執行
 
-3. 轉出來檔案會放在 /output 裡面
+3. 轉出來檔案會放在資料夾 output 裡面
