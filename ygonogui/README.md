@@ -4,6 +4,8 @@
 一直找不到問題點，
 因此新增以 PowerShell 寫成的無圖形介面版本
 
+## 下載連結
+至 [發布頁面](https://github.com/ytingyeu/ygogui/releases) 下載 `ygonogui.zip`
 
 ## 使用方式
 
