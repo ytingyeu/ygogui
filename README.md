@@ -11,19 +11,29 @@
 有自定義需求的人建議使用 [Hybrid](http://www.selur.de/)
 或 [HandBrake](https://handbrake.fr/)。
 
-**注意!!!**
-此專案目前有無法解決的 async 問題，
-Windows 系統下建議改用非 GUI 版本的方案
-[ygonogui](ygonogui)
+
 
 
 ## 使用方式
+### GUI 版本
+**注意!!!**
+此版本目前有無法解決的 async 問題，
+Windows 系統下建議改用非 GUI 版本的方案
+
 1. 至 [發布頁面](https://github.com/ytingyeu/ygogui/releases)
    下載 `ygogui-<release-verison>-ia32-win.zip` 並解壓縮
 2. 執行 `ygogui.exe`
 3. 拖曳或使用瀏覽按鈕指定來源影片或 `avs` 腳本
 4. 使用瀏覽按鈕指定輸出路徑與檔名
 5. 按下 Encode 按鈕並等待編碼完成
+
+### PowerShell 版本
+1. 至 [發布頁面](https://github.com/ytingyeu/ygogui/releases)
+   下載 `ygonogui.zip` 並解壓縮
+2. 把要轉的檔案(mp4, avi, avs 等)放進資料夾 `source`
+3. 對著 ygonogui.ps1 按右鍵 -> 以 PowerShell 執行
+4. 轉出來檔案會放在資料夾 `output` 裡面
+
 
 ## 建構資訊
 1. 安裝最新版的 `Node.js` 並設置相關系統環境變數。雖然 Electron 官方建議使用 `yarn` 管理套件，但作者使用 `npm` 暫無發現影響
