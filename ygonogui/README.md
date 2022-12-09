@@ -1,7 +1,9 @@
 ## ygonogui
 
 用 Electron 寫的 GUI 版本陷入了 async 地獄
+
 一直找不到問題點
+
 因此新增以 PowerShell 寫成的無圖形介面版本
 
 

@@ -7,13 +7,13 @@
 支援的輸入格式除常見的 `avi, mp4, mkv` 外，
 亦可搭配 [AviSynth](http://avisynth.nl/index.php/Main_Page) 使用 `avs` 腳本。
 
-本專案目的是作業懶人化
+本專案目的是作業懶人化，
 有自定義需求的人建議使用 [Hybrid](http://www.selur.de/)
 或 [HandBrake](https://handbrake.fr/)。
 
-** 注意!!! **
-此專案目前有無法解決的 async 問題
-Windows 系統下建議使用非 GUI 版本的方案
+**注意!!!**
+此專案目前有無法解決的 async 問題，
+Windows 系統下建議改用非 GUI 版本的方案
 [ygonogui](ygonogui)
 
 
